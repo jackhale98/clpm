@@ -128,7 +128,8 @@
                   :components
                   ((:file "test-scheduler")
                    (:file "test-critical-path")
-                   (:file "test-resource-allocation")))
+                   (:file "test-resource-allocation")
+                   (:file "test-calendars")))
                  (:module "session"
                   :serial t
                   :components
@@ -141,7 +142,8 @@
                  (:module "tracking"
                   :serial t
                   :components
-                  ((:file "test-evm")))
+                  ((:file "test-evm")
+                   (:file "test-bookings")))
                  (:module "integration"
                   :serial t
                   :components

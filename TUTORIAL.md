@@ -10,11 +10,13 @@ Welcome to Project Juggler! This tutorial will guide you through creating and ma
 4. [Resource Management](#resource-management)
 5. [Scheduling and Dependencies](#scheduling-and-dependencies)
 6. [Effort-Based Scheduling](#effort-based-scheduling)
-7. [Critical Path Analysis](#critical-path-analysis)
-8. [Tracking Progress with EVM](#tracking-progress-with-evm)
-9. [Generating Reports](#generating-reports)
-10. [Session Management](#session-management)
-11. [Advanced Features](#advanced-features)
+7. [Working Time Calendars](#working-time-calendars)
+8. [Critical Path Analysis](#critical-path-analysis)
+9. [Tracking Progress with EVM](#tracking-progress-with-evm)
+10. [Recording Actual Time with Bookings](#recording-actual-time-with-bookings)
+11. [Generating Reports](#generating-reports)
+12. [Session Management](#session-management)
+13. [Advanced Features](#advanced-features)
 
 ## Getting Started
 
@@ -441,6 +443,147 @@ Use **effort** for:
 
 For a complete example, see `examples/effort-scheduling.lisp`.
 
+## Working Time Calendars
+
+Project Juggler supports working time calendars to define when work can be done. Calendars track working hours, weekends, and holidays for realistic project scheduling.
+
+### Creating a Working Calendar
+
+```lisp
+;; Define working hours (Monday-Friday, 9 AM - 5 PM)
+(defvar *working-hours*
+  (make-instance 'working-hours
+                :days '(:monday :tuesday :wednesday :thursday :friday)
+                :start-time "09:00"
+                :end-time "17:00"))
+
+;; Create a calendar
+(defvar *company-calendar*
+  (make-instance 'calendar
+                :id 'company-cal
+                :name "Company Calendar"
+                :working-hours *working-hours*
+                :timezone :utc))
+
+;; Add holidays
+(add-holiday *company-calendar* (date 2024 12 25) "Christmas Day")
+(add-holiday *company-calendar* (date 2024 7 4) "Independence Day")
+(add-holiday *company-calendar* (date 2024 11 28) "Thanksgiving")
+(add-holiday *company-calendar* (date 2024 1 1) "New Year's Day")
+
+(format t "Calendar created with ~A holidays~%"
+        (length (calendar-holidays *company-calendar*)))
+```
+
+### Checking Working Days
+
+```lisp
+;; Check if specific dates are working days
+(working-day-p (date 2024 11 18) *company-calendar*)  ; => T (Monday)
+(working-day-p (date 2024 11 16) *company-calendar*)  ; => NIL (Saturday)
+(working-day-p (date 2024 11 17) *company-calendar*)  ; => NIL (Sunday)
+(working-day-p (date 2024 12 25) *company-calendar*)  ; => NIL (Christmas)
+
+;; Get day of week for any date
+(date-day-of-week (date 2024 11 18))  ; => :MONDAY
+(date-day-of-week (date 2024 11 16))  ; => :SATURDAY
+```
+
+### Calculating Working Hours
+
+The calendar automatically skips weekends and holidays when calculating durations:
+
+```lisp
+;; Calculate working hours between dates
+(let ((start (date 2024 11 18))   ; Monday
+      (end (date 2024 11 25)))     ; Next Monday
+  (format t "Calendar days: 7~%")
+  (format t "Working hours: ~A~%"
+          (working-hours-between start end *company-calendar*)))
+;; Output:
+;; Calendar days: 7
+;; Working hours: 40  (5 working days * 8 hours, skipping weekend)
+
+;; Calculate working hours for a specific date
+(working-hours-on-date (date 2024 11 18) *company-calendar*)  ; => 8
+(working-hours-on-date (date 2024 11 16) *company-calendar*)  ; => 0 (weekend)
+(working-hours-on-date (date 2024 12 25) *company-calendar*)  ; => 0 (holiday)
+```
+
+### Example: Calculating Project Duration with Calendar
+
+```lisp
+;; Calculate realistic project duration accounting for weekends and holidays
+(defvar *project-start* (date 2024 12 20))   ; Friday before Christmas
+(defvar *project-end* (date 2025 1 6))       ; Monday after New Year
+
+(let ((calendar-days (duration-in-days (date- *project-end* *project-start*)))
+      (working-hours (working-hours-between *project-start* *project-end* *company-calendar*))
+      (working-days (/ working-hours 8)))
+  (format t "Project span:~%")
+  (format t "  Calendar days: ~A~%" calendar-days)
+  (format t "  Working hours: ~A~%" working-hours)
+  (format t "  Working days: ~A~%" working-days))
+
+;; Output (accounting for weekends + Christmas + New Year):
+;; Project span:
+;;   Calendar days: 17
+;;   Working hours: 80
+;;   Working days: 10
+```
+
+### Custom Working Hours
+
+Different calendars for different scenarios:
+
+```lisp
+;; Standard 4-day work week
+(defvar *four-day-week*
+  (make-instance 'working-hours
+                :days '(:monday :tuesday :wednesday :thursday)
+                :start-time "09:00"
+                :end-time "17:00"))
+
+;; Half-day Fridays
+(defvar *half-day-friday*
+  (make-instance 'working-hours
+                :days '(:friday)
+                :start-time "09:00"
+                :end-time "13:00"))
+
+;; Extended hours (8 AM - 6 PM)
+(defvar *extended-hours*
+  (make-instance 'working-hours
+                :days '(:monday :tuesday :wednesday :thursday :friday)
+                :start-time "08:00"
+                :end-time "18:00"))
+```
+
+### Calendar Best Practices
+
+1. **Define calendars early** - Create your project calendar before scheduling
+2. **Account for company holidays** - Add all known holidays upfront
+3. **Use realistic working hours** - Match your team's actual schedule
+4. **Consider time zones** - Set the appropriate timezone for distributed teams
+5. **Update calendars as needed** - Add new holidays as they're announced
+
+```lisp
+;; Best practice: Define calendar in project definition
+(defproject my-project "My Project"
+  :start (date 2024 3 1)
+  :end (date 2024 12 31)
+
+  ;; Tasks and resources...
+  )
+
+;; Then use calendar for duration calculations
+(let ((task-start (date 2024 3 1))
+      (task-effort (duration 80 :hours)))
+  ;; Calculate when task will finish given calendar
+  (format t "80 hours of work will take ~A working days~%"
+          (/ 80 (working-hours-per-day *working-hours*))))
+```
+
 ## Critical Path Analysis
 
 The critical path is the sequence of tasks that determines the minimum project duration.
@@ -549,6 +692,236 @@ As work progresses, update the completion percentage:
   - > 1.0 = ahead of schedule
   - < 1.0 = behind schedule
   - = 1.0 = exactly on schedule
+
+## Recording Actual Time with Bookings
+
+Project Juggler provides a booking system to track actual time spent on tasks. Bookings help you compare planned vs. actual effort and automatically update task completion percentages.
+
+### Creating Bookings
+
+After scheduling your project and starting work, record actual time spent:
+
+```lisp
+;; Assume we have a scheduled project
+(finalize-project *current-project*)
+(schedule *current-project*)
+
+;; Get references to a task and resource
+(let ((task (gethash 'frontend (project-tasks *current-project*)))
+      (developer (gethash 'dev (project-resources *current-project*))))
+
+  ;; Record work with specific start and end times
+  (add-booking task developer
+               (date 2024 11 18 9 0 0)    ; Monday, 9 AM
+               (date 2024 11 18 17 0 0))  ; Monday, 5 PM
+
+  (format t "Booked 8 hours of work~%"))
+```
+
+### Recording Work with Duration
+
+Instead of an end time, you can specify a duration:
+
+```lisp
+(let ((task (gethash 'backend (project-tasks *current-project*)))
+      (developer (gethash 'dev (project-resources *current-project*))))
+
+  ;; Record 6 hours of work
+  (add-booking task developer
+               (date 2024 11 19 9 0 0)
+               (duration 6 :hours))
+
+  (format t "Recorded 6 hours of work~%"))
+```
+
+### Tracking Total Hours
+
+Calculate total hours booked for tasks or resources:
+
+```lisp
+;; Total hours worked on a specific task
+(let ((task (gethash 'frontend (project-tasks *current-project*))))
+  (format t "Total hours on frontend: ~A~%"
+          (total-booked-hours task)))
+
+;; Total hours worked by a specific resource
+(let ((developer (gethash 'dev (project-resources *current-project*))))
+  (format t "Developer's total hours: ~A~%"
+          (total-booked-hours developer)))
+```
+
+### Auto-Calculating Task Completion
+
+The most powerful feature: automatically calculate task completion from bookings!
+
+```lisp
+(let ((task (gethash 'frontend (project-tasks *current-project*))))
+
+  ;; Task has 40 hours of planned effort
+  (format t "Planned effort: ~A hours~%"
+          (duration-in-hours (task-effort task)))
+
+  ;; Record actual work over several days
+  (add-booking task (gethash 'dev (project-resources *current-project*))
+               (date 2024 11 18 9 0 0) (duration 8 :hours))
+  (add-booking task (gethash 'dev (project-resources *current-project*))
+               (date 2024 11 19 9 0 0) (duration 8 :hours))
+  (add-booking task (gethash 'dev (project-resources *current-project*))
+               (date 2024 11 20 9 0 0) (duration 4 :hours))
+
+  ;; Total: 20 hours booked
+  (format t "Actual work: ~A hours~%" (total-booked-hours task))
+
+  ;; Auto-calculate completion: 20 / 40 = 50%
+  (update-task-completion-from-bookings task)
+  (format t "Task completion: ~A%~%" (task-complete task)))
+
+;; Output:
+;; Planned effort: 40 hours
+;; Actual work: 20.0 hours
+;; Task completion: 50%
+```
+
+### Filtering Bookings by Date Range
+
+Get bookings within a specific time period:
+
+```lisp
+(let ((task (gethash 'frontend (project-tasks *current-project*)))
+      (week-start (date 2024 11 18))
+      (week-end (date 2024 11 25)))
+
+  ;; Get all bookings for this week
+  (let ((week-bookings (bookings-in-range task week-start week-end)))
+    (format t "Bookings this week: ~A~%" (length week-bookings))
+
+    ;; Calculate hours for this week
+    (let ((week-hours (reduce #'+ week-bookings
+                              :key #'booking-duration-hours
+                              :initial-value 0)))
+      (format t "Hours worked this week: ~A~%" week-hours))))
+```
+
+### Getting Booking Details
+
+Access individual booking information:
+
+```lisp
+(let* ((task (gethash 'frontend (project-tasks *current-project*)))
+       (bookings (task-bookings task)))
+
+  (dolist (booking bookings)
+    (format t "~%Booking:~%")
+    (format t "  Resource: ~A~%" (resource-name (booking-resource booking)))
+    (format t "  Start: ~A~%" (booking-start booking))
+    (format t "  End: ~A~%" (booking-end booking))
+    (format t "  Duration: ~A hours (~A days)~%"
+            (booking-duration-hours booking)
+            (booking-duration-days booking))))
+```
+
+### Complete Booking Workflow Example
+
+Here's a complete example of tracking a task from planning to completion:
+
+```lisp
+;; 1. Define project with effort-based task
+(defproject tracking-demo "Time Tracking Demo"
+  :start (date 2024 11 18)
+  :end (date 2024 12 31)
+
+  (defresource dev "Developer")
+
+  (deftask feature "New Feature"
+    :effort (duration 40 :hours)  ; Planned effort
+    :allocate (dev)))
+
+;; 2. Schedule and create baseline
+(finalize-project *current-project*)
+(schedule *current-project*)
+
+(let ((baseline (create-baseline *current-project* :name "Original Plan")))
+  (set-project-baseline *current-project* baseline))
+
+;; 3. Record actual work as it happens
+(let ((task (gethash 'feature (project-tasks *current-project*)))
+      (developer (gethash 'dev (project-resources *current-project*))))
+
+  ;; Week 1: Monday - Friday
+  (add-booking task developer (date 2024 11 18 9 0 0) (duration 8 :hours))
+  (add-booking task developer (date 2024 11 19 9 0 0) (duration 8 :hours))
+  (add-booking task developer (date 2024 11 20 9 0 0) (duration 8 :hours))
+  (add-booking task developer (date 2024 11 21 9 0 0) (duration 8 :hours))
+  (add-booking task developer (date 2024 11 22 9 0 0) (duration 8 :hours))
+
+  (format t "Week 1 complete: ~A hours~%" (total-booked-hours task))
+
+  ;; Update completion based on bookings
+  (update-task-completion-from-bookings task)
+  (format t "Task is ~A% complete~%" (task-complete task)))
+
+;; 4. Compare with EVM metrics
+(let ((pv (calculate-planned-value *current-project* (date 2024 11 22)))
+      (ev (calculate-earned-value *current-project*))
+      (spi (calculate-spi *current-project* (date 2024 11 22))))
+
+  (format t "~%EVM Metrics:~%")
+  (format t "  Planned Value: ~,1F%~%" pv)
+  (format t "  Earned Value: ~,1F%~%" ev)
+  (format t "  SPI: ~,2F " spi)
+
+  (cond
+    ((> spi 1.0) (format t "(AHEAD of schedule)~%"))
+    ((< spi 1.0) (format t "(BEHIND schedule)~%"))
+    (t (format t "(ON schedule)~%"))))
+```
+
+### Booking Best Practices
+
+1. **Record time regularly** - Daily or weekly tracking provides accurate data
+2. **Use effort-based tasks** - Tasks with `:effort` work best with booking auto-completion
+3. **Track all resources** - Record time for everyone working on the task
+4. **Compare planned vs actual** - Use bookings with EVM for performance insights
+5. **Review weekly** - Check booked hours against plan regularly
+
+```lisp
+;; Example: Weekly time tracking report
+(defun weekly-time-report (project week-start)
+  (let ((week-end (date+ week-start (duration 7 :days))))
+    (format t "~%=== Time Report for Week of ~A ===~%" week-start)
+
+    (maphash (lambda (id task)
+               (declare (ignore id))
+               (let ((week-bookings (bookings-in-range task week-start week-end)))
+                 (when (> (length week-bookings) 0)
+                   (let ((hours (reduce #'+ week-bookings
+                                       :key #'booking-duration-hours
+                                       :initial-value 0)))
+                     (format t "~A: ~A hours~%" (task-name task) hours)))))
+             (project-tasks project))
+
+    (format t "~%")))
+
+;; Use it:
+(weekly-time-report *current-project* (date 2024 11 18))
+```
+
+### Integration with EVM
+
+Bookings enhance EVM tracking by providing actual work data:
+
+```lisp
+;; Traditional EVM (manual completion updates)
+(setf (task-complete task) 50)  ; Manual estimate
+
+;; EVM with bookings (automatic, accurate)
+(update-task-completion-from-bookings task)  ; Calculated from actual work
+
+;; This gives you more accurate EVM metrics:
+(let ((ev (calculate-earned-value *current-project*))
+      (pv (calculate-planned-value *current-project* (local-time:now))))
+  (format t "Earned Value based on actual bookings: ~A%~%" ev))
+```
 
 ## Generating Reports
 

@@ -195,7 +195,20 @@
    ;; Tracking
    #:scenario
    #:booking
+   #:booking-p
+   #:booking-resource
+   #:booking-task
+   #:booking-start
+   #:booking-end
+   #:booking-amount
+   #:booking-duration-hours
+   #:booking-duration-days
    #:add-booking
+   #:total-booked-hours
+   #:bookings-in-range
+   #:update-task-completion-from-bookings
+   #:task-bookings
+   #:resource-bookings
 
    ;; Baseline and EVM
    #:baseline
@@ -225,11 +238,26 @@
    #:detect-resource-overallocations
    #:calculate-resource-load
 
-   ;; Working time
+   ;; Working time calendars
    #:calendar
+   #:calendar-p
+   #:calendar-id
+   #:calendar-name
+   #:calendar-working-hours
+   #:calendar-holidays
+   #:calendar-timezone
    #:working-hours
+   #:working-hours-p
+   #:working-hours-days
+   #:working-hours-start-time
+   #:working-hours-end-time
+   #:working-hours-per-day
    #:working-day-p
    #:working-hours-between
+   #:working-hours-on-date
+   #:add-holiday
+   #:holiday-p
+   #:date-day-of-week
 
    ;; Error conditions
    #:project-juggler-error

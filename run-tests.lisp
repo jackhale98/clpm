@@ -50,6 +50,10 @@
 (run! 'reporting-suite)
 (format t "~%")
 (run! 'evm-suite)
+(format t "~%")
+(run! 'calendar-suite)
+(format t "~%")
+(run! 'bookings-suite)
 
 ;; Exit
 (uiop:quit 0)

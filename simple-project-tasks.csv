@@ -1,0 +1,7 @@
+Id,Name,Start,End,Duration
+SP-REQUIREMENTS,Requirements Gathering,2024-03-01,2024-03-08,1 weeks
+SP-DESIGN,UI/UX Design,2024-03-08,2024-03-22,2 weeks
+SP-FRONTEND,Frontend Development,2024-03-22,2024-04-12,3 weeks
+SP-BACKEND,Backend Development,2024-03-08,2024-03-29,3 weeks
+SP-INTEGRATION,Integration & Testing,2024-04-12,2024-04-19,1 weeks
+SP-DEPLOYMENT,Deployment & Launch,2024-04-19,2024-04-22,3 days

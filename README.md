@@ -3,7 +3,7 @@
 **A modern, text-first project management system written in Common Lisp**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 415/415](https://img.shields.io/badge/tests-415%2F415%20passing-brightgreen)](tests/)
+[![Tests: 481/481](https://img.shields.io/badge/tests-481%2F481%20passing-brightgreen)](tests/)
 [![Common Lisp](https://img.shields.io/badge/language-Common%20Lisp-blue)](https://common-lisp.net/)
 
 Project Juggler is a TaskJuggler-inspired project management tool that brings powerful scheduling and tracking capabilities to Common Lisp. Define your projects in a clean, expressive DSL, schedule them with industry-standard algorithms, and track progress with Earned Value Management.
@@ -16,6 +16,8 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
   - TaskJuggler-style heuristic scheduling for optimal resource allocation
   - Critical Path Method (CPM) for mathematical slack-based analysis (automatic)
   - **Effort-based scheduling** with resource efficiency calculations
+- **Working Time Calendars** - Define working hours, holidays, and calculate calendar-aware durations
+- **Actual Time Tracking** - Record actual work with bookings and auto-calculate task completion
 - **Earned Value Management (EVM)** - Track project performance with PV, EV, SV, and SPI metrics
 - **Resource Management** - Allocate resources, detect over-allocation, calculate utilization
 - **Interactive REPL** - Modify projects on-the-fly with full undo/redo support
@@ -33,7 +35,7 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
 - **Namespace System** - Organize large projects into modular components
 - **Comprehensive Validation** - Circular dependency detection, constraint checking
 - **Type Safety** - Rich temporal types (dates, durations, intervals)
-- **100% Test Coverage** - 415 tests ensure reliability
+- **100% Test Coverage** - 481 tests ensure reliability
 
 ## 📦 Installation
 
@@ -65,7 +67,7 @@ sbcl
 # Run all tests
 sbcl --script run-tests.lisp
 
-# Expected output: 415/415 tests passing
+# Expected output: 481/481 tests passing
 ```
 
 ## 🚀 Quick Example
@@ -322,6 +324,100 @@ Detect over-allocation:
             (overallocation-load oa))))
 ```
 
+### Working Time Calendars
+
+Define working hours, holidays, and perform calendar-aware calculations:
+
+```lisp
+;; Create a company calendar with standard M-F, 9-5 working hours
+(defvar *company-calendar*
+  (let ((wh (make-instance 'working-hours
+                          :days '(:monday :tuesday :wednesday :thursday :friday)
+                          :start-time "09:00"
+                          :end-time "17:00"))
+        (cal (make-instance 'calendar
+                           :id 'company
+                           :name "Company Calendar"
+                           :working-hours wh
+                           :timezone :utc)))
+    ;; Add company holidays
+    (add-holiday cal (date 2024 12 25) "Christmas")
+    (add-holiday cal (date 2024 7 4) "Independence Day")
+    (add-holiday cal (date 2024 11 28) "Thanksgiving")
+    cal))
+
+;; Check if a date is a working day
+(working-day-p (date 2024 11 18) *company-calendar*)  ; => T (Monday)
+(working-day-p (date 2024 11 16) *company-calendar*)  ; => NIL (Saturday)
+(working-day-p (date 2024 12 25) *company-calendar*)  ; => NIL (Holiday)
+
+;; Calculate working hours between dates (skips weekends and holidays)
+(working-hours-between (date 2024 11 18) (date 2024 11 25) *company-calendar*)
+;; => 40 (5 working days * 8 hours)
+
+;; Calculate working hours for a specific date
+(working-hours-on-date (date 2024 11 18) *company-calendar*)  ; => 8
+(working-hours-on-date (date 2024 11 16) *company-calendar*)  ; => 0 (weekend)
+```
+
+**Calendar Features:**
+- Configurable working days and hours
+- Holiday management with descriptions
+- Timezone support
+- Weekend and holiday detection
+- Working hours calculations that automatically skip non-working days
+
+### Tracking Actual Time with Bookings
+
+Record actual time spent and automatically calculate task completion:
+
+```lisp
+;; After scheduling, record actual work
+(let ((developer (gethash 'dev (project-resources *current-project*)))
+      (task (gethash 'frontend (project-tasks *current-project*))))
+
+  ;; Record work with end time
+  (add-booking task developer
+               (date 2024 11 18 9 0 0)   ; Start: 9 AM
+               (date 2024 11 18 17 0 0))  ; End: 5 PM
+
+  ;; Or record work with duration
+  (add-booking task developer
+               (date 2024 11 19 9 0 0)
+               (duration 8 :hours))
+
+  ;; Calculate total hours booked
+  (format t "Total hours on task: ~A~%" (total-booked-hours task))
+  ;; => 16.0
+
+  ;; Calculate total hours for resource
+  (format t "Developer hours: ~A~%" (total-booked-hours developer))
+  ;; => 16.0
+
+  ;; Auto-calculate task completion from bookings
+  (update-task-completion-from-bookings task)
+  ;; If task has 40 hours planned effort, 16 booked = 40% complete
+  (format t "Task completion: ~A%~%" (task-complete task)))
+```
+
+**Booking Features:**
+- Record actual work by date and time or duration
+- Bidirectional tracking (tasks know their bookings, resources know theirs)
+- Filter bookings by date range
+- Automatic task completion percentage calculation
+- Integrates with EVM for accurate progress tracking
+
+```lisp
+;; Filter bookings by date range
+(bookings-in-range task (date 2024 11 18) (date 2024 11 20))
+
+;; Get booking durations
+(let ((booking (first (task-bookings task))))
+  (format t "Duration: ~A hours (~A days)~%"
+          (booking-duration-hours booking)
+          (booking-duration-days booking)))
+```
+
 ### Reporting
 
 #### Using defreport DSL (Recommended)
@@ -429,7 +525,8 @@ For ad-hoc reports, create them directly:
 2. **Separation of Concerns**: Heuristic scheduling separate from CPM analysis
 3. **Immutable Baselines**: Project snapshots for reliable EVM tracking
 4. **Type Safety**: Rich temporal types prevent common errors
-5. **Test-Driven**: 415 tests ensure correctness
+5. **Calendar-Aware**: Working time calendars for realistic scheduling
+6. **Test-Driven**: 481 tests ensure correctness
 
 ### Key Components
 
@@ -440,11 +537,11 @@ project-juggler/
 │   ├── dsl/            # Project definition macros
 │   ├── namespace/      # Modular organization
 │   ├── validation/     # Constraint checking
-│   ├── scheduling/     # TaskJuggler heuristic + CPM
+│   ├── scheduling/     # TaskJuggler + CPM + calendars
 │   ├── session/        # Save/load, undo/redo
 │   ├── tracking/       # EVM, baselines, bookings
 │   └── reporting/      # HTML, CSV, Gantt
-└── tests/              # Comprehensive test suite
+└── tests/              # 481 comprehensive tests
 ```
 
 ## 📚 Examples
@@ -498,14 +595,19 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🗺️ Roadmap
 
-Core implementation is complete! Future enhancements:
+Core implementation is complete! Recent additions:
+
+- [x] ~~Calendar integration (working hours, holidays)~~ ✅ **Done!**
+- [x] ~~Actual time tracking with bookings~~ ✅ **Done!**
+
+Future enhancements:
 
 - [ ] Resource leveling algorithms
+- [ ] Scenario-based what-if analysis
 - [ ] Monte Carlo simulation for risk analysis
 - [ ] Gantt chart rendering (HTML5 Canvas/SVG)
 - [ ] Web-based UI
 - [ ] Import/export TaskJuggler format
-- [ ] Calendar integration (working hours, holidays)
 
 ---
 

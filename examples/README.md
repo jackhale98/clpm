@@ -4,7 +4,40 @@ This directory contains example projects demonstrating various features of Proje
 
 ## Available Examples
 
-### 1. simple-project.lisp - Website Redesign Project
+### 1. time-tracking-project.lisp - Mobile App with Calendar & Bookings ✨ NEW!
+**Complexity:** Intermediate
+**Demonstrates:**
+- **Working time calendars** with holidays and weekends
+- **Actual time tracking** with bookings
+- Auto-calculated task completion from bookings
+- Calendar-aware working hours calculations
+- EVM integration with real booking data
+- Resource utilization tracking
+- Holiday impact on project schedules
+
+**Run it:**
+```bash
+cd /path/to/project-juggler
+sbcl --script examples/time-tracking-project.lisp
+```
+
+**What you'll see:**
+- Complete workflow from calendar setup to time tracking
+- Week-by-week booking simulation
+- Automatic task completion calculation (76 hours booked / 80 planned = 95%)
+- EVM metrics based on actual work
+- Calendar-aware analysis (skipping weekends and Thanksgiving)
+- Resource utilization report
+- Generated HTML report
+
+**Key Concepts:**
+- `working-hours`: Define Mon-Fri, 9-5 working schedule
+- `calendar`: Track holidays and calculate realistic durations
+- `add-booking`: Record actual work by resource and task
+- `update-task-completion-from-bookings`: Auto-calculate % complete
+- Integration with EVM for accurate progress tracking
+
+### 2. simple-project.lisp - Website Redesign Project
 **Complexity:** Basic
 **Demonstrates:**
 - Basic task definition with durations
@@ -35,7 +68,7 @@ sbcl
 - Resource allocation analysis
 - Generated reports in `examples/` directory
 
-### 2. web-application.lisp - SaaS Platform Development
+### 3. web-application.lisp - SaaS Platform Development
 **Complexity:** Advanced
 **Demonstrates:**
 - Large multi-phase project (40+ tasks)
@@ -66,7 +99,7 @@ sbcl
 - 5 generated reports demonstrating different defreport configurations
 - Critical path analysis across the entire project
 
-### 3. effort-scheduling.lisp - Effort-Based Scheduling Demo
+### 4. effort-scheduling.lisp - Effort-Based Scheduling Demo
 **Complexity:** Intermediate
 **Demonstrates:**
 - **Effort-based scheduling** with resource efficiency

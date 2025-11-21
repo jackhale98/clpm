@@ -30,72 +30,72 @@
   :end (date 2024 9 30)
 
   ;;; Resources with different efficiency levels
-  (defresource senior-dev "Senior Developer"
+  (defresource senior-engineer "Senior Engineer"
     :efficiency 1.5    ; 50% more productive
     :rate 150.0)
 
-  (defresource mid-dev "Mid-level Developer"
+  (defresource mid-engineer "Mid-level Engineer"
     :efficiency 1.0    ; Baseline productivity
     :rate 100.0)
 
-  (defresource junior-dev "Junior Developer"
+  (defresource junior-engineer "Junior Engineer"
     :efficiency 0.6    ; 60% as productive as baseline
     :rate 70.0)
 
-  (defresource designer "Designer"
+  (defresource product-manager "Product Manager"
     :efficiency 1.0
     :rate 90.0)
 
   ;;; Duration-based tasks (not affected by resource efficiency)
   (deftask meeting "Kickoff Meeting"
     :duration (duration 1 :days)
-    :allocate (senior-dev mid-dev junior-dev designer)
+    :allocate (senior-engineer mid-engineer junior-engineer product-manager)
     :priority 1000)
 
   ;;; Effort-based tasks - duration varies by resource efficiency
 
-  ;; Task 1: 10 days effort with senior dev (efficiency 1.5)
+  ;; Task 1: 10 days effort with senior engineer (efficiency 1.5)
   ;; Actual duration: 10 / 1.5 = 7 days
-  (deftask task1 "Feature A - Senior Developer"
+  (deftask task1 "Feature A - Senior Engineer"
     :effort (duration 10 :days)
     :depends-on (meeting)
-    :allocate (senior-dev)
+    :allocate (senior-engineer)
     :priority 900)
 
-  ;; Task 2: 10 days effort with mid-level dev (efficiency 1.0)
+  ;; Task 2: 10 days effort with mid-level engineer (efficiency 1.0)
   ;; Actual duration: 10 / 1.0 = 10 days
-  (deftask task2 "Feature B - Mid-level Developer"
+  (deftask task2 "Feature B - Mid-level Engineer"
     :effort (duration 10 :days)
     :depends-on (meeting)
-    :allocate (mid-dev)
+    :allocate (mid-engineer)
     :priority 900)
 
-  ;; Task 3: 10 days effort with junior dev (efficiency 0.6)
+  ;; Task 3: 10 days effort with junior engineer (efficiency 0.6)
   ;; Actual duration: 10 / 0.6 = 17 days
-  (deftask task3 "Feature C - Junior Developer"
+  (deftask task3 "Feature C - Junior Engineer"
     :effort (duration 10 :days)
     :depends-on (meeting)
-    :allocate (junior-dev)
+    :allocate (junior-engineer)
     :priority 900)
 
-  ;; Task 4: 20 days effort with TWO developers (efficiencies: 1.5 + 1.0 = 2.5)
+  ;; Task 4: 20 days effort with TWO engineers (efficiencies: 1.5 + 1.0 = 2.5)
   ;; Actual duration: 20 / 2.5 = 8 days
   (deftask task4 "Feature D - Pair Programming"
     :effort (duration 20 :days)
     :depends-on (meeting)
-    :allocate (senior-dev mid-dev)
+    :allocate (senior-engineer mid-engineer)
     :priority 900)
 
-  ;; Task 5: 15 days effort with ALL THREE developers (efficiencies: 1.5 + 1.0 + 0.6 = 3.1)
+  ;; Task 5: 15 days effort with ALL THREE engineers (efficiencies: 1.5 + 1.0 + 0.6 = 3.1)
   ;; Actual duration: 15 / 3.1 = 5 days
   (deftask task5 "Integration - Full Team"
     :effort (duration 15 :days)
     :depends-on (task1 task2 task3 task4)
-    :allocate (senior-dev mid-dev junior-dev)
+    :allocate (senior-engineer mid-engineer junior-engineer)
     :priority 950)
 
   ;; Final milestone
-  (deftask launch "Project Launch"
+  (deftask effort-demo-complete "Demo Complete"
     :milestone t
     :depends-on (task5))
 
@@ -155,9 +155,9 @@
                (format t "  Effort: ~A days~%" (duration-in-days effort)))
              (format t "  Actual Duration: ~A days~%~%" duration-days))))
 
-  (show-task 'task1 "Feature A - Senior Developer")
-  (show-task 'task2 "Feature B - Mid-level Developer")
-  (show-task 'task3 "Feature C - Junior Developer")
+  (show-task 'task1 "Feature A - Senior Engineer")
+  (show-task 'task2 "Feature B - Mid-level Engineer")
+  (show-task 'task3 "Feature C - Junior Engineer")
   (show-task 'task4 "Feature D - Pair Programming")
   (show-task 'task5 "Integration - Full Team"))
 
@@ -165,10 +165,10 @@
 (format t "KEY INSIGHTS~%")
 (format t "──────────────────────────────────────────────────────────~%~%")
 
-(format t "1. Senior developer (efficiency 1.5) completes 10 days effort in 7 days~%")
-(format t "2. Mid-level developer (efficiency 1.0) completes 10 days effort in 10 days~%")
-(format t "3. Junior developer (efficiency 0.6) completes 10 days effort in 17 days~%")
-(format t "4. Two developers working together combine their efficiencies~%")
+(format t "1. Senior engineer (efficiency 1.5) completes 10 days effort in 7 days~%")
+(format t "2. Mid-level engineer (efficiency 1.0) completes 10 days effort in 10 days~%")
+(format t "3. Junior engineer (efficiency 0.6) completes 10 days effort in 17 days~%")
+(format t "4. Two engineers working together combine their efficiencies~%")
 (format t "5. Duration-based tasks (meetings) are not affected by efficiency~%~%")
 
 ;; Generate report

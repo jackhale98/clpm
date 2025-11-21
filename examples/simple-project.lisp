@@ -46,38 +46,38 @@
     :rate 70.0)
 
   ;;; Tasks
-  (deftask requirements "Requirements Gathering"
+  (deftask sp-requirements "Requirements Gathering"
     :duration (duration 1 :weeks)
     :allocate (developer designer)
     :priority 1000)
 
-  (deftask design "UI/UX Design"
+  (deftask sp-design "UI/UX Design"
     :duration (duration 2 :weeks)
-    :depends-on (requirements)
+    :depends-on (sp-requirements)
     :allocate (designer)
     :priority 900)
 
-  (deftask frontend "Frontend Development"
+  (deftask sp-frontend "Frontend Development"
     :duration (duration 3 :weeks)
-    :depends-on (design)
+    :depends-on (sp-design)
     :allocate (developer)
     :priority 850)
 
-  (deftask backend "Backend Development"
+  (deftask sp-backend "Backend Development"
     :duration (duration 3 :weeks)
-    :depends-on (requirements)
+    :depends-on (sp-requirements)
     :allocate (developer)
     :priority 850)
 
-  (deftask integration "Integration & Testing"
+  (deftask sp-integration "Integration & Testing"
     :duration (duration 1 :weeks)
-    :depends-on (frontend backend)
+    :depends-on (sp-frontend sp-backend)
     :allocate (developer qa)
     :priority 950)
 
-  (deftask deployment "Deployment & Launch"
+  (deftask sp-deployment "Deployment & Launch"
     :duration (duration 3 :days)
-    :depends-on (integration)
+    :depends-on (sp-integration)
     :allocate (developer)
     :priority 1000)
 
@@ -205,12 +205,12 @@
 (format t "Now try these commands in the REPL:~%~%")
 
 (format t ";; View a specific task~%")
-(format t "(let ((task (gethash 'frontend (project-tasks *current-project*))))~%")
+(format t "(let ((task (gethash 'sp-frontend (project-tasks *current-project*))))~%")
 (format t "  (format t \"~~A: ~~A to ~~A~~%%\"~%")
 (format t "          (task-name task) (task-start task) (task-end task)))~%~%")
 
 (format t ";; Mark a task as 50%% complete~%")
-(format t "(setf (task-complete (gethash 'requirements~%")
+(format t "(setf (task-complete (gethash 'sp-requirements~%")
 (format t "                      (project-tasks *current-project*))) 50)~%~%")
 
 (format t ";; Calculate EVM metrics~%")

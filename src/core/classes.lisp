@@ -47,7 +47,9 @@
    (early-finish :initform nil :accessor task-early-finish)
    (late-start :initform nil :accessor task-late-start)
    (late-finish :initform nil :accessor task-late-finish)
-   (slack :initform nil :accessor task-slack))
+   (slack :initform nil :accessor task-slack)
+   ;; Bookings (actual time tracking)
+   (bookings :initform nil :accessor task-bookings))
   (:documentation "A task"))
 
 (defun task-p (obj)
@@ -64,7 +66,9 @@
    (limits :initform nil :accessor resource-limits)
    (criticalness :initform 0.0 :accessor resource-criticalness)
    (allocated-effort :initform 0.0 :accessor resource-allocated-effort)
-   (available-effort :initform 0.0 :accessor resource-available-effort))
+   (available-effort :initform 0.0 :accessor resource-available-effort)
+   ;; Bookings (actual time tracking)
+   (bookings :initform nil :accessor resource-bookings))
   (:documentation "A resource"))
 
 (defun resource-p (obj)
