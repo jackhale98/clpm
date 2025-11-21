@@ -1,0 +1,36 @@
+Id,Name,Start,End,Duration,Priority
+REQUIREMENTS,Requirements Gathering,2024-03-01,2024-03-15,2 weeks,1000
+ARCHITECTURE,System Architecture Design,2024-03-15,2024-03-29,2 weeks,950
+UX-DESIGN,UX Design & Wireframes,2024-03-15,2024-04-05,3 weeks,900
+UI-DESIGN,UI Design & Mockups,2024-04-05,2024-04-19,2 weeks,900
+DESIGN-APPROVAL,Design Approval,2024-04-19,2024-04-19,,500
+DATABASE-DESIGN,Database Schema Design,2024-04-19,2024-04-26,1 weeks,950
+API-FRAMEWORK,API Framework Setup,2024-04-26,2024-05-03,1 weeks,900
+USER-AUTH,User Authentication & Authorization,2024-05-03,2024-05-17,2 weeks,950
+USER-API,User Management API,2024-05-03,2024-05-10,1 weeks,850
+DATA-API,Data Processing API,2024-05-03,2024-05-17,2 weeks,850
+REPORTING-API,Reporting API,2024-05-03,2024-05-17,2 weeks,800
+BACKEND-TESTS,Backend Unit Tests,2024-05-17,2024-05-31,2 weeks,850
+FRONTEND-SETUP,Frontend Framework Setup,2024-04-19,2024-04-26,1 weeks,900
+COMPONENTS,Component Library Development,2024-04-26,2024-05-10,2 weeks,850
+DASHBOARD,Dashboard Implementation,2024-05-10,2024-05-31,3 weeks,900
+LOGIN-UI,Login & Registration UI,2024-05-10,2024-05-17,1 weeks,850
+PROFILE-UI,User Profile UI,2024-05-10,2024-05-17,1 weeks,800
+DATA-VIEWS,Data Visualization Views,2024-05-10,2024-05-24,2 weeks,850
+FRONTEND-TESTS,Frontend Unit Tests,2024-05-31,2024-06-14,2 weeks,800
+INTEGRATION,Backend-Frontend Integration,2024-06-14,2024-06-28,2 weeks,950
+FUNCTIONAL-TESTS,Functional Testing,2024-06-28,2024-07-12,2 weeks,950
+PERFORMANCE-TESTS,Performance Testing,2024-06-28,2024-07-05,1 weeks,900
+SECURITY-TESTS,Security Testing,2024-06-28,2024-07-05,1 weeks,950
+BUG-FIXING,Bug Fixing & Refinement,2024-07-12,2024-07-26,2 weeks,900
+REGRESSION-TESTS,Regression Testing,2024-07-26,2024-08-02,1 weeks,900
+INFRASTRUCTURE,Infrastructure Setup,2024-08-02,2024-08-16,2 weeks,950
+CI-CD,CI/CD Pipeline,2024-08-16,2024-08-23,1 weeks,900
+STAGING-DEPLOY,Staging Deployment,2024-08-23,2024-08-30,1 weeks,950
+STAGING-VALIDATION,Staging Validation,2024-08-30,2024-09-06,1 weeks,950
+PROD-DEPLOY,Production Deployment,2024-09-06,2024-09-09,3 days,1000
+LAUNCH,Product Launch,2024-09-09,2024-09-09,,500
+MONITORING,Monitoring & Alerts Setup,2024-09-09,2024-09-16,1 weeks,900
+DOCUMENTATION,User Documentation,2024-09-09,2024-09-23,2 weeks,700
+SUPPORT,Initial Support Period,2024-09-09,2024-09-23,2 weeks,800
+PROJECT-COMPLETE,Project Complete,2024-09-23,2024-09-23,,500

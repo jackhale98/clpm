@@ -3,7 +3,7 @@
 **A modern, text-first project management system written in Common Lisp**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 389/389](https://img.shields.io/badge/tests-389%2F389%20passing-brightgreen)](tests/)
+[![Tests: 415/415](https://img.shields.io/badge/tests-415%2F415%20passing-brightgreen)](tests/)
 [![Common Lisp](https://img.shields.io/badge/language-Common%20Lisp-blue)](https://common-lisp.net/)
 
 Project Juggler is a TaskJuggler-inspired project management tool that brings powerful scheduling and tracking capabilities to Common Lisp. Define your projects in a clean, expressive DSL, schedule them with industry-standard algorithms, and track progress with Earned Value Management.
@@ -11,27 +11,29 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
 ## ✨ Features
 
 ### 🎯 Core Capabilities
-- **Declarative DSL** - Define projects, tasks, and resources using intuitive Lisp macros
+- **Declarative DSL** - Define projects, tasks, resources, and reports using intuitive Lisp macros
 - **Dual Scheduling Algorithms**
   - TaskJuggler-style heuristic scheduling for optimal resource allocation
-  - Critical Path Method (CPM) for mathematical slack-based analysis
+  - Critical Path Method (CPM) for mathematical slack-based analysis (automatic)
+  - **Effort-based scheduling** with resource efficiency calculations
 - **Earned Value Management (EVM)** - Track project performance with PV, EV, SV, and SPI metrics
 - **Resource Management** - Allocate resources, detect over-allocation, calculate utilization
 - **Interactive REPL** - Modify projects on-the-fly with full undo/redo support
 
 ### 📊 Reporting & Tracking
+- **defreport DSL** - Define reports alongside tasks with filtering and sorting
 - **HTML Reports** - Professional, styled HTML output with task and resource views
 - **CSV Export** - RFC 4180 compliant CSV for spreadsheet integration
 - **Gantt Chart Data** - Structured data ready for visualization
 - **Baseline Comparison** - Snapshot and compare project states over time
-- **Critical Path Analysis** - Identify tasks that impact project completion
+- **Critical Path Analysis** - Automatically calculated during scheduling
 
 ### 🔧 Developer Features
 - **Session Management** - Save and load project state with full fidelity
 - **Namespace System** - Organize large projects into modular components
 - **Comprehensive Validation** - Circular dependency detection, constraint checking
 - **Type Safety** - Rich temporal types (dates, durations, intervals)
-- **100% Test Coverage** - 389 tests ensure reliability
+- **100% Test Coverage** - 415 tests ensure reliability
 
 ## 📦 Installation
 
@@ -63,7 +65,7 @@ sbcl
 # Run all tests
 sbcl --script run-tests.lisp
 
-# Expected output: 389/389 tests passing
+# Expected output: 415/415 tests passing
 ```
 
 ## 🚀 Quick Example
@@ -111,13 +113,26 @@ sbcl --script run-tests.lisp
 
   (deftask launch "Production Launch"
     :milestone t
-    :depends-on (testing)))
+    :depends-on (testing))
+
+  ;; Define reports alongside tasks
+  (defreport summary "Project Summary"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :duration :priority)
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+
+  (defreport critical-only "Critical Path Tasks"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :slack)
+    :filter (lambda (task) (and (task-slack task) (zerop (task-slack task))))))
 
 ;; Finalize and schedule the project
 (finalize-project *current-project*)
-(schedule *current-project*)
+(schedule *current-project*)  ; Automatically calculates critical path!
 
-;; Find critical path
+;; View critical path
 (let ((critical-tasks (critical-path *current-project*)))
   (format t "Critical Path:~%")
   (dolist (task critical-tasks)
@@ -125,15 +140,9 @@ sbcl --script run-tests.lisp
             (task-name task)
             (task-slack task))))
 
-;; Generate HTML report
-(let ((report (make-instance 'task-report
-                :id 'summary
-                :title "Project Summary"
-                :format :html
-                :columns '(:id :name :start :end :duration :priority))))
-  (with-open-file (out "report.html" :direction :output
-                                      :if-exists :supersede)
-    (write-string (generate-report report *current-project*) out)))
+;; Generate reports using DSL-defined reports
+(save-project-report *current-project* 'summary "report.html")
+(save-project-report *current-project* 'critical-only "critical.html")
 ```
 
 ## 📖 Documentation
@@ -174,8 +183,22 @@ Resources can be people, equipment, or materials:
 
 ```lisp
 (defresource resource-id "Resource Name"
-  :efficiency 1.0    ; Productivity factor (0.0-1.0+)
+  :efficiency 1.0    ; Productivity factor (default 1.0)
   :rate 100.0)       ; Cost per hour
+
+;; Higher efficiency = work completes faster
+(defresource senior-dev "Senior Developer" :efficiency 1.5)  ; 50% more productive
+(defresource junior-dev "Junior Developer" :efficiency 0.6)  ; 60% as productive
+```
+
+**Effort vs Duration:**
+- **Duration**: Fixed calendar time (meetings, waiting periods)
+- **Effort**: Work that scales with resource efficiency
+
+When using `:effort`, actual duration = effort / total_resource_efficiency:
+```lisp
+;; 10 days effort with efficiency 1.5 resource = 7 days actual duration
+;; 10 days effort with two resources (eff 1.0 + 1.0) = 5 days actual duration
 ```
 
 #### Dependencies
@@ -239,13 +262,19 @@ Dependencies default to "finish-start" (task2 starts after task1 finishes).
 
 #### Critical Path Analysis
 ```lisp
-;; Calculate critical path
-(forward-pass *current-project*)      ; Calculate early start/finish
-(backward-pass *current-project*)     ; Calculate late start/finish
-(calculate-slack *current-project*)   ; Calculate slack/float
+;; schedule automatically calculates critical path
+(finalize-project *current-project*)
+(schedule *current-project*)          ; Runs CPM analysis automatically!
 
 ;; Get critical tasks (zero slack)
 (critical-path *current-project*)     ; Returns list of critical tasks
+
+;; Manual CPM calculation (if needed)
+(calculate-critical-path *current-project*)  ; Convenience function
+;; Or step-by-step:
+(forward-pass *current-project*)      ; Calculate early start/finish
+(backward-pass *current-project*)     ; Calculate late start/finish
+(calculate-slack *current-project*)   ; Calculate slack/float
 ```
 
 ### Earned Value Management (EVM)
@@ -295,26 +324,64 @@ Detect over-allocation:
 
 ### Reporting
 
-#### HTML Reports
+#### Using defreport DSL (Recommended)
+Define reports alongside your tasks for a clean, declarative approach:
+
 ```lisp
+(defproject my-project "My Project"
+  ;; ... tasks and resources ...
+
+  ;; Define reports as part of the project
+  (defreport summary "Task Summary"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :duration :priority)
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+
+  (defreport high-priority "High Priority Tasks"
+    :type :task
+    :format :html
+    :columns (:id :name :priority :slack)
+    :filter (lambda (task) (> (task-priority task) 800)))
+
+  (defreport task-export "CSV Export"
+    :type :task
+    :format :csv
+    :columns (:id :name :start :end :duration))
+
+  (defreport resources "Resource Utilization"
+    :type :resource
+    :format :html
+    :columns (:id :name :efficiency :rate :criticalness)))
+
+;; Generate reports by ID
+(save-project-report *current-project* 'summary "summary.html")
+(save-project-report *current-project* 'task-export "tasks.csv")
+
+;; List all defined reports
+(list-project-reports *current-project*)  ; => (SUMMARY HIGH-PRIORITY TASK-EXPORT RESOURCES)
+
+;; Generate all reports at once
+(generate-all-reports *current-project* "reports/")  ; Saves to reports/ directory
+```
+
+#### Manual Report Creation
+For ad-hoc reports, create them directly:
+
+```lisp
+;; Quick task report
+(quick-task-report *current-project*
+  :format :html
+  :columns '(:id :name :start :end)
+  :filter (lambda (task) (task-scheduled-p task)))
+
+;; Manual report instance
 (let ((report (make-instance 'task-report
                 :id 'summary
                 :title "Task Summary"
                 :format :html
-                :columns '(:id :name :start :end :duration :priority)
-                :filter (lambda (task) (> (task-priority task) 500))
-                :sort-by (lambda (a b) (date< (task-start a) (task-start b))))))
-  (generate-report report *current-project*))
-```
-
-#### CSV Export
-```lisp
-(let ((report (make-instance 'task-report
-                :id 'export
-                :title "Task Export"
-                :format :csv
-                :columns '(:id :name :start :end :duration))))
-  (with-open-file (out "tasks.csv" :direction :output :if-exists :supersede)
+                :columns '(:id :name :start :end :duration :priority))))
+  (with-open-file (out "report.html" :direction :output :if-exists :supersede)
     (write-string (generate-report report *current-project*) out)))
 ```
 
@@ -362,7 +429,7 @@ Detect over-allocation:
 2. **Separation of Concerns**: Heuristic scheduling separate from CPM analysis
 3. **Immutable Baselines**: Project snapshots for reliable EVM tracking
 4. **Type Safety**: Rich temporal types prevent common errors
-5. **Test-Driven**: 389 tests ensure correctness
+5. **Test-Driven**: 415 tests ensure correctness
 
 ### Key Components
 
@@ -384,9 +451,11 @@ project-juggler/
 
 See the [`examples/`](examples/) directory for complete project examples:
 
-- **Web Application Project** - Multi-team software development
-- **Construction Project** - Resource-constrained scheduling
-- **Research Project** - Milestone-driven academic project
+- **simple-project.lisp** - Simple website redesign (6 tasks, demonstrates basics)
+- **web-application.lisp** - Complex SaaS platform (40+ tasks, multiple teams)
+- **effort-scheduling.lisp** - Demonstrates effort-based scheduling with resource efficiency
+
+Each example is runnable: `sbcl --script examples/simple-project.lisp`
 
 ## 🤝 Contributing
 

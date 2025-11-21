@@ -9,11 +9,12 @@ Welcome to Project Juggler! This tutorial will guide you through creating and ma
 3. [Working with Tasks](#working-with-tasks)
 4. [Resource Management](#resource-management)
 5. [Scheduling and Dependencies](#scheduling-and-dependencies)
-6. [Critical Path Analysis](#critical-path-analysis)
-7. [Tracking Progress with EVM](#tracking-progress-with-evm)
-8. [Generating Reports](#generating-reports)
-9. [Session Management](#session-management)
-10. [Advanced Features](#advanced-features)
+6. [Effort-Based Scheduling](#effort-based-scheduling)
+7. [Critical Path Analysis](#critical-path-analysis)
+8. [Tracking Progress with EVM](#tracking-progress-with-evm)
+9. [Generating Reports](#generating-reports)
+10. [Session Management](#session-management)
+11. [Advanced Features](#advanced-features)
 
 ## Getting Started
 
@@ -317,6 +318,129 @@ Tasks with higher priority are scheduled first when resources are constrained:
 
 Priority range: 0-1000 (default: 500)
 
+## Effort-Based Scheduling
+
+Project Juggler supports both duration-based and effort-based scheduling. Effort-based tasks account for resource efficiency to calculate actual duration.
+
+### Duration vs Effort
+
+**Duration-based tasks** have fixed calendar time:
+```lisp
+;; Meeting takes exactly 2 hours regardless of who attends
+(deftask kickoff-meeting "Project Kickoff"
+  :duration (duration 2 :hours)
+  :allocate (dev designer))
+```
+
+**Effort-based tasks** scale with resource efficiency:
+```lisp
+;; Task requires 10 days of work effort
+;; Actual duration depends on resource efficiency
+(deftask feature-development "Feature Development"
+  :effort (duration 10 :days)
+  :allocate (senior-dev))
+```
+
+### Resource Efficiency
+
+Resources have an efficiency factor that affects effort-based tasks:
+
+```lisp
+(defresource senior-dev "Senior Developer"
+  :efficiency 1.5)  ; 50% more productive than baseline
+
+(defresource mid-dev "Mid-level Developer"
+  :efficiency 1.0)  ; Baseline productivity
+
+(defresource junior-dev "Junior Developer"
+  :efficiency 0.6)  ; 60% as productive as baseline
+```
+
+### How Effort Scheduling Works
+
+The formula: **Actual Duration = Effort / Total Resource Efficiency**
+
+#### Example 1: Single Resource
+
+```lisp
+(defresource senior-dev "Senior Dev" :efficiency 1.5)
+
+(deftask feature-a "Feature A"
+  :effort (duration 10 :days)
+  :allocate (senior-dev))
+
+;; Actual duration = 10 / 1.5 = 7 days (rounded up)
+```
+
+#### Example 2: Multiple Resources
+
+Resources working together combine their efficiencies:
+
+```lisp
+(defresource dev1 "Developer 1" :efficiency 1.0)
+(defresource dev2 "Developer 2" :efficiency 1.5)
+
+(deftask pair-programming "Pair Programming Task"
+  :effort (duration 20 :days)
+  :allocate (dev1 dev2))
+
+;; Total efficiency = 1.0 + 1.5 = 2.5
+;; Actual duration = 20 / 2.5 = 8 days
+```
+
+#### Example 3: Comparing Efficiency Levels
+
+```lisp
+(defproject effort-demo "Effort Scheduling Demo"
+  :start (date 2024 6 1)
+  :end (date 2024 9 30)
+
+  (defresource senior-dev "Senior Developer" :efficiency 1.5)
+  (defresource mid-dev "Mid-level Developer" :efficiency 1.0)
+  (defresource junior-dev "Junior Developer" :efficiency 0.6)
+
+  ;; Same 10-day effort, different actual durations
+  (deftask task-senior "Task with Senior"
+    :effort (duration 10 :days)
+    :allocate (senior-dev))
+    ;; Actual duration: 7 days
+
+  (deftask task-mid "Task with Mid-level"
+    :effort (duration 10 :days)
+    :allocate (mid-dev))
+    ;; Actual duration: 10 days
+
+  (deftask task-junior "Task with Junior"
+    :effort (duration 10 :days)
+    :allocate (junior-dev))
+    ;; Actual duration: 17 days
+)
+
+(finalize-project *current-project*)
+(schedule *current-project*)
+```
+
+### When to Use Effort vs Duration
+
+Use **duration** for:
+- Meetings and reviews
+- Waiting periods (approvals, deployments)
+- Fixed-time activities
+
+Use **effort** for:
+- Development work
+- Design tasks
+- Any work that scales with team size or skill level
+
+### Best Practices
+
+1. **Set realistic efficiency values** based on team performance data
+2. **Account for collaboration overhead** when allocating multiple resources
+3. **Use effort for parallelizable work** where adding resources reduces time
+4. **Validate estimates** by comparing scheduled vs actual completion times
+
+For a complete example, see `examples/effort-scheduling.lisp`.
+
 ## Critical Path Analysis
 
 The critical path is the sequence of tasks that determines the minimum project duration.
@@ -428,7 +552,111 @@ As work progresses, update the completion percentage:
 
 ## Generating Reports
 
-### HTML Reports
+Project Juggler provides two ways to create reports: the declarative **defreport DSL** (recommended) and manual report creation (for advanced use cases).
+
+### Using the defreport DSL (Recommended)
+
+The defreport macro lets you define reports alongside your tasks within the project definition:
+
+```lisp
+(defproject website "Company Website Redesign"
+  :start (date 2024 3 1)
+  :end (date 2024 5 31)
+
+  ;; ... tasks and resources ...
+
+  ;; Define reports as part of the project
+  (defreport summary "Project Task Summary"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :duration :priority)
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+
+  (defreport csv-export "Task Export"
+    :type :task
+    :format :csv
+    :columns (:id :name :start :end :duration))
+
+  (defreport high-priority "High Priority Tasks"
+    :type :task
+    :format :html
+    :columns (:id :name :priority :slack)
+    :filter (lambda (task) (> (task-priority task) 800))
+    :sort-by (lambda (a b) (> (task-priority a) (task-priority b)))))
+
+;; After scheduling, generate reports by ID
+(finalize-project *current-project*)
+(schedule *current-project*)
+
+(save-project-report *current-project* 'summary "summary.html")
+(save-project-report *current-project* 'csv-export "tasks.csv")
+(save-project-report *current-project* 'high-priority "high-priority.html")
+```
+
+### defreport Parameters
+
+- **:type** - `:task` or `:resource` (default: `:task`)
+- **:format** - `:html` or `:csv` (default: `:html`)
+- **:columns** - List of columns to include (e.g., `(:id :name :start :end :duration :priority :slack)`)
+- **:filter** - Optional lambda to filter items (e.g., `(lambda (task) (> (task-priority task) 700))`)
+- **:sort-by** - Optional lambda to sort items (e.g., `(lambda (a b) (date< (task-start a) (task-start b)))`)
+
+### Working with Project Reports
+
+```lisp
+;; List all defined reports
+(list-project-reports *current-project*)
+;; => (SUMMARY CSV-EXPORT HIGH-PRIORITY)
+
+;; Generate a specific report
+(let ((html (generate-project-report *current-project* 'summary)))
+  (format t "~A~%" html))
+
+;; Generate all reports at once
+(generate-all-reports *current-project* "reports/")
+;; Creates reports/summary.html, reports/csv-export.csv, etc.
+```
+
+### Filtering Examples
+
+Show only critical path tasks:
+```lisp
+(defreport critical-only "Critical Path Tasks"
+  :type :task
+  :format :html
+  :columns (:id :name :start :end :slack)
+  :filter (lambda (task)
+            (and (task-slack task)
+                 (zerop (task-slack task))))
+  :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+```
+
+Show incomplete tasks:
+```lisp
+(defreport incomplete "Incomplete Tasks"
+  :type :task
+  :format :html
+  :columns (:id :name :start :end :complete)
+  :filter (lambda (task) (< (task-complete task) 100)))
+```
+
+### Resource Reports
+
+Generate resource utilization reports:
+```lisp
+(defreport resources "Resource Utilization"
+  :type :resource
+  :format :html
+  :columns (:id :name :efficiency :rate :criticalness)
+  :sort-by (lambda (a b) (> (resource-criticalness a)
+                            (resource-criticalness b))))
+
+(save-project-report *current-project* 'resources "resources.html")
+```
+
+### Manual Report Creation (Advanced)
+
+For ad-hoc reports or advanced customization, you can create reports manually:
 
 ```lisp
 ;; Create a task report
@@ -447,7 +675,7 @@ As work progresses, update the completion percentage:
   (format t "Report saved to report.html~%"))
 ```
 
-### Filtering and Sorting
+#### Manual Filtering and Sorting
 
 ```lisp
 ;; Show only high-priority tasks, sorted by start date
@@ -467,7 +695,7 @@ As work progresses, update the completion percentage:
     (write-string (generate-report report *current-project*) out)))
 ```
 
-### CSV Export
+#### Manual CSV Export
 
 ```lisp
 ;; Export to CSV for Excel/Google Sheets

@@ -51,6 +51,7 @@
    #:project-resources
    #:project-scenarios
    #:project-current-scenario
+   #:project-reports
    #:project-p
 
    #:task
@@ -140,6 +141,7 @@
    ;; Scheduling (TaskJuggler heuristic)
    #:schedule
    #:schedule-task
+   #:calculate-duration-from-effort
    #:calculate-resource-criticalness
    #:calculate-task-criticalness
    #:calculate-path-criticalness
@@ -147,6 +149,7 @@
 
    ;; Critical path (CPM slack-based - Phase 6)
    #:critical-path
+   #:calculate-critical-path
    #:calculate-slack
    #:forward-pass
    #:backward-pass
@@ -181,6 +184,13 @@
    #:sort-tasks-for-report
    #:generate-gantt-data
    #:defreport
+   #:generate-project-report
+   #:save-project-report
+   #:list-project-reports
+   #:get-project-report
+   #:generate-all-reports
+   #:quick-task-report
+   #:quick-resource-report
 
    ;; Tracking
    #:scenario

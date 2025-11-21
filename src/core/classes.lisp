@@ -14,7 +14,8 @@
    (resources :initform (make-hash-table :test 'eq) :accessor project-resources)
    (scenarios :initform nil :accessor project-scenarios)
    (current-scenario :initform :plan :accessor project-current-scenario)
-   (baseline :initform nil :accessor project-baseline))
+   (baseline :initform nil :accessor project-baseline)
+   (reports :initform (make-hash-table :test 'eq) :accessor project-reports))
   (:documentation "A project"))
 
 (defun project-p (obj)

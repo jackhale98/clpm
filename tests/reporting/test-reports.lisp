@@ -345,3 +345,140 @@
       (is (eq 't2 (task-id (first sorted))))
       (is (eq 't3 (task-id (second sorted))))
       (is (eq 't1 (task-id (third sorted)))))))
+
+;;; ============================================================================
+;;; defreport DSL Tests
+;;; ============================================================================
+
+(test defreport-basic
+  "Can define a report using defreport macro"
+  (with-test-project
+    (deftask t1 "Task 1"
+      :start (date 2024 3 1)
+      :duration (duration 5 :days))
+
+    (defreport test-report "Test Report"
+      :type :task
+      :format :html
+      :columns (:id :name :start :end))
+
+    ;; Report should be registered with project
+    (let ((report (get-project-report *current-project* 'test-report)))
+      (is (not (null report)))
+      (is (typep report 'task-report))
+      (is (string= "Test Report" (report-title report)))
+      (is (eq :html (report-format report)))
+      (is (equal '(:id :name :start :end) (report-columns report))))))
+
+(test defreport-with-filter
+  "defreport with filter function"
+  (with-test-project
+    (deftask t1 "Task 1"
+      :start (date 2024 3 1)
+      :duration (duration 5 :days)
+      :priority 800)
+    (deftask t2 "Task 2"
+      :start (date 2024 3 1)
+      :duration (duration 3 :days)
+      :priority 500)
+
+    (defreport high-priority "High Priority Tasks"
+      :type :task
+      :format :html
+      :columns (:name :priority)
+      :filter (lambda (task) (> (task-priority task) 600)))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let* ((output (generate-project-report *current-project* 'high-priority)))
+      (is (search "Task 1" output))
+      (is (not (search "Task 2" output))))))
+
+(test defreport-resource-report
+  "defreport for resource reports"
+  (with-test-project
+    (defresource dev1 "Developer" :efficiency 1.0 :rate 100.0)
+
+    (defreport resource-list "Resource List"
+      :type :resource
+      :format :csv
+      :columns (:id :name :efficiency))
+
+    (let ((report (get-project-report *current-project* 'resource-list)))
+      (is (typep report 'resource-report))
+      (is (eq :csv (report-format report))))))
+
+;;; ============================================================================
+;;; Report Helper Function Tests
+;;; ============================================================================
+
+(test generate-project-report-by-id
+  "Generate a registered report by ID"
+  (with-test-project
+    (deftask t1 "Task 1"
+      :start (date 2024 3 1)
+      :duration (duration 5 :days))
+
+    (defreport summary "Summary"
+      :type :task
+      :format :html
+      :columns (:name :start))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((output (generate-project-report *current-project* 'summary)))
+      (is (stringp output))
+      (is (search "Task 1" output))
+      (is (search "Summary" output)))))
+
+(test list-project-reports-empty
+  "List reports when none defined"
+  (with-test-project
+    (let ((reports (list-project-reports *current-project*)))
+      (is (listp reports))
+      (is (zerop (length reports))))))
+
+(test list-project-reports-multiple
+  "List all defined reports"
+  (with-test-project
+    (defreport report1 "Report 1"
+      :type :task
+      :format :html
+      :columns (:name))
+
+    (defreport report2 "Report 2"
+      :type :task
+      :format :csv
+      :columns (:name))
+
+    (let ((reports (list-project-reports *current-project*)))
+      (is (= 2 (length reports)))
+      (is (member 'report1 reports))
+      (is (member 'report2 reports)))))
+
+(test save-project-report-creates-file
+  "save-project-report creates output file"
+  (with-test-project
+    (deftask t1 "Task 1"
+      :start (date 2024 3 1)
+      :duration (duration 5 :days))
+
+    (defreport test "Test Report"
+      :type :task
+      :format :html
+      :columns (:name))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((filepath "/tmp/test-report-output.html"))
+      (when (probe-file filepath)
+        (delete-file filepath))
+
+      (save-project-report *current-project* 'test filepath)
+
+      (is (probe-file filepath))
+      (when (probe-file filepath)
+        (delete-file filepath)))))

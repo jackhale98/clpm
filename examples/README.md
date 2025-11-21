@@ -10,9 +10,10 @@ This directory contains example projects demonstrating various features of Proje
 - Basic task definition with durations
 - Resource allocation
 - Task dependencies
-- Critical path analysis
+- Critical path analysis (automatically calculated during scheduling)
 - Resource over-allocation detection
 - EVM baseline creation
+- **defreport DSL** for defining reports within the project
 - HTML and CSV report generation
 
 **Run it:**
@@ -41,10 +42,61 @@ sbcl
 - Multiple resource teams
 - Complex dependency chains
 - Parallel task execution
+- Milestones with multiple dependencies
 - Resource over-allocation in realistic scenarios
 - Complete project lifecycle (planning → deployment → support)
+- **defreport DSL** with 5 different reports (task summary, CSV export, critical path, high-priority tasks, resource utilization)
+- Filtering and sorting reports with lambda functions
 
-**Note:** This example has a known limitation with milestone scheduling when dependencies are in parallel. See "Known Limitations" below.
+**Run it:**
+```bash
+cd /path/to/project-juggler
+sbcl
+```
+
+```lisp
+(push (truename ".") asdf:*central-registry*)
+(ql:quickload :project-juggler)
+(load "examples/web-application.lisp")
+```
+
+**What you'll see:**
+- Complex project with 36 tasks spanning 6.5 months
+- Multiple phases: requirements, design, development, testing, deployment, support
+- 5 generated reports demonstrating different defreport configurations
+- Critical path analysis across the entire project
+
+### 3. effort-scheduling.lisp - Effort-Based Scheduling Demo
+**Complexity:** Intermediate
+**Demonstrates:**
+- **Effort-based scheduling** with resource efficiency
+- How resource efficiency affects task duration
+- Single resource efficiency examples (senior, mid-level, junior developers)
+- Multiple resources combining efficiencies (pair programming)
+- Comparing identical effort with different resource skill levels
+- The formula: `Actual Duration = Effort / Total Resource Efficiency`
+
+**Key Concepts:**
+- Senior developer (1.5 efficiency) completes 10-day effort in 7 days
+- Junior developer (0.6 efficiency) completes 10-day effort in 17 days
+- Two resources working together combine their efficiencies
+
+**Run it:**
+```bash
+cd /path/to/project-juggler
+sbcl
+```
+
+```lisp
+(push (truename ".") asdf:*central-registry*)
+(ql:quickload :project-juggler)
+(load "examples/effort-scheduling.lisp")
+```
+
+**What you'll see:**
+- Comparison of how different resource efficiencies affect actual task duration
+- Examples of pair programming where multiple resources combine efficiencies
+- Real-world scenarios showing why senior developers complete work faster
 
 ## How to Run Examples
 
@@ -123,8 +175,20 @@ A snapshot of the initial plan for tracking progress.
 
 After running an example, you'll find:
 
-- **`simple-project-report.html`** - HTML report you can open in a browser
+**simple-project.lisp generates:**
+- **`simple-project-report.html`** - Task summary HTML report
 - **`simple-project-tasks.csv`** - CSV export for Excel/Google Sheets
+- **`simple-project-critical.html`** - Critical path tasks only
+
+**web-application.lisp generates:**
+- **`web-application-report.html`** - Complete task summary
+- **`web-application-tasks.csv`** - CSV export with all tasks
+- **`web-application-critical.html`** - Critical path analysis
+- **`web-application-high-priority.html`** - High-priority tasks (priority > 900)
+- **`web-application-resources.html`** - Resource utilization report
+
+**effort-scheduling.lisp generates:**
+- **`effort-scheduling-report.html`** - Shows actual vs estimated durations for effort-based tasks
 
 ## Experimenting with Examples
 
@@ -207,7 +271,14 @@ After loading an example, try these commands:
   (deftask task2 "Second Task"
     :duration (duration 2 :weeks)
     :depends-on (task1)
-    :allocate (person1)))
+    :allocate (person1))
+
+  ;; Define reports using defreport DSL
+  (defreport summary "Task Summary"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :duration)
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b)))))
 
 ;; Schedule and analyze
 (finalize-project *current-project*)
@@ -216,31 +287,10 @@ After loading an example, try these commands:
 ;; Display results
 (format t "Project: ~A~%" (project-name *current-project*))
 (format t "Tasks: ~A~%" (hash-table-count (project-tasks *current-project*)))
-```
 
-## Known Limitations
-
-### Milestones with Parallel Dependencies
-Currently, milestones that depend on multiple parallel tasks may not schedule correctly. This is a known limitation being addressed.
-
-**Workaround:** Add an intermediate task that depends on the parallel tasks, then have the milestone depend on that task.
-
-Instead of:
-```lisp
-(deftask milestone "Milestone"
-  :milestone t
-  :depends-on (task1 task2))  ; task1 and task2 run in parallel
-```
-
-Use:
-```lisp
-(deftask integration "Integration"
-  :duration (duration 1 :days)
-  :depends-on (task1 task2))
-
-(deftask milestone "Milestone"
-  :milestone t
-  :depends-on (integration))
+;; Generate reports
+(save-project-report *current-project* 'summary "my-project-summary.html")
+(format t "Report saved to my-project-summary.html~%")
 ```
 
 ## Troubleshooting

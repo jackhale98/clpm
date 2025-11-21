@@ -9,6 +9,19 @@
 ;;;; - EVM tracking
 ;;;; - Report generation
 
+;;; Load the project-juggler system
+(require :asdf)
+(push (truename "../") asdf:*central-registry*)
+
+;; Load quicklisp if available
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                       (user-homedir-pathname))))
+  (when (probe-file quicklisp-init)
+    (load quicklisp-init)))
+
+;; Load dependencies and project-juggler
+(ql:quickload :project-juggler :silent t)
+
 (in-package :project-juggler)
 
 ;;; =============================================================================
@@ -66,7 +79,25 @@
     :duration (duration 3 :days)
     :depends-on (integration)
     :allocate (developer)
-    :priority 1000))
+    :priority 1000)
+
+  ;;; Reports - using defreport DSL
+  (defreport summary "Project Task Summary"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :duration :priority))
+
+  (defreport csv-export "Task Export"
+    :type :task
+    :format :csv
+    :columns (:id :name :start :end :duration))
+
+  (defreport critical-tasks "Critical Path Tasks"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :slack :priority)
+    :filter (lambda (task) (and (task-slack task) (zerop (task-slack task))))
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b)))))
 
 ;;; =============================================================================
 ;;; ANALYSIS AND REPORTING
@@ -115,10 +146,7 @@
 (format t "CRITICAL PATH ANALYSIS~%")
 (format t "──────────────────────────────────────────────────────────~%")
 
-(forward-pass *current-project*)
-(backward-pass *current-project*)
-(calculate-slack *current-project*)
-
+;; Note: schedule automatically calculates critical path using CPM
 (let ((critical-tasks (critical-path *current-project*)))
   (format t "Critical path (~A tasks):~%~%" (length critical-tasks))
   (dolist (task critical-tasks)
@@ -152,41 +180,33 @@
   (format t "✓ Baseline created: ~A~%" (baseline-name baseline))
   (format t "  Tasks: ~A~%~%" (hash-table-count (baseline-tasks baseline))))
 
-;; Generate reports
+;; Generate reports using the new DSL
 (format t "──────────────────────────────────────────────────────────~%")
 (format t "GENERATING REPORTS~%")
 (format t "──────────────────────────────────────────────────────────~%")
 
-(let ((report (make-instance 'task-report
-                :id 'summary
-                :title "Project Task Summary"
-                :format :html
-                :columns '(:id :name :start :end :duration :priority))))
-  (with-open-file (out "examples/simple-project-report.html"
-                       :direction :output
-                       :if-exists :supersede)
-    (write-string (generate-report report *current-project*) out))
-  (format t "✓ HTML report: examples/simple-project-report.html~%"))
+;; Use the save-project-report helper function
+(save-project-report *current-project* 'summary "simple-project-report.html")
+(format t "✓ HTML report: simple-project-report.html~%")
 
-(let ((report (make-instance 'task-report
-                :id 'csv
-                :title "Task Export"
-                :format :csv
-                :columns '(:id :name :start :end :duration))))
-  (with-open-file (out "examples/simple-project-tasks.csv"
-                       :direction :output
-                       :if-exists :supersede)
-    (write-string (generate-report report *current-project*) out))
-  (format t "✓ CSV export: examples/simple-project-tasks.csv~%~%"))
+(save-project-report *current-project* 'csv-export "simple-project-tasks.csv")
+(format t "✓ CSV export: simple-project-tasks.csv~%")
+
+(save-project-report *current-project* 'critical-tasks "simple-project-critical.html")
+(format t "✓ Critical path report: simple-project-critical.html~%~%")
 
 (format t "──────────────────────────────────────────────────────────~%")
 (format t "✓ EXAMPLE COMPLETE!~%")
 (format t "──────────────────────────────────────────────────────────~%")
-(format t "~%Now try these commands:~%~%")
+(format t "~%Generated files:~%")
+(format t "• simple-project-report.html (open in browser)~%")
+(format t "• simple-project-tasks.csv (open in spreadsheet)~%")
+(format t "• simple-project-critical.html (critical path tasks only)~%~%")
+(format t "Now try these commands in the REPL:~%~%")
 
 (format t ";; View a specific task~%")
 (format t "(let ((task (gethash 'frontend (project-tasks *current-project*))))~%")
-(format t "  (format t \"~A: ~A to ~A~~%%\"~%")
+(format t "  (format t \"~~A: ~~A to ~~A~~%%\"~%")
 (format t "          (task-name task) (task-start task) (task-end task)))~%~%")
 
 (format t ";; Mark a task as 50%% complete~%")
@@ -197,7 +217,7 @@
 (format t "(let ((pv (calculate-planned-value *current-project* (local-time:now)))~%")
 (format t "      (ev (calculate-earned-value *current-project*))~%")
 (format t "      (spi (calculate-spi *current-project* (local-time:now))))~%")
-(format t "  (format t \"Schedule Performance: PV=~A%%, EV=~A%%, SPI=~,2F~~%%\"~%")
+(format t "  (format t \"Schedule Performance: PV=~~A%%, EV=~~A%%, SPI=~~,2F~~%%\"~%")
 (format t "          pv ev spi))~%~%")
 
 (format t "══════════════════════════════════════════════════════════~%~%")

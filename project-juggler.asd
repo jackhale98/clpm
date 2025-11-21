@@ -36,7 +36,8 @@
                    (:file "defresource")
                    (:file "defaccount")
                    (:file "dependencies")
-                   (:file "allocations")))
+                   (:file "allocations")
+                   (:file "defreport")))
                  (:module "validation"
                   :serial t
                   :components
@@ -72,6 +73,7 @@
                    (:file "task-reports")
                    (:file "resource-reports")
                    (:file "gantt")
+                   (:file "helpers")
                    (:module "formats"
                     :serial t
                     :components

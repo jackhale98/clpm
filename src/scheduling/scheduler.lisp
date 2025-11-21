@@ -14,7 +14,9 @@
    1. If task has fixed start date, use it
    2. Otherwise, start after all dependencies complete
    3. Calculate end date based on duration or effort
-   4. Mark task as scheduled"
+   4. Mark task as scheduled
+
+   After scheduling, automatically calculates critical path using CPM."
   (declare (ignore scenario))
 
   ;; Get tasks in dependency order (topological sort)
@@ -24,7 +26,24 @@
     (dolist (task sorted-tasks)
       (schedule-task task project))
 
+    ;; Automatically calculate critical path
+    (calculate-critical-path project)
+
     t))
+
+(defun calculate-critical-path (project)
+  "Convenience function that performs all CPM analysis steps.
+
+   Calculates:
+   - Forward pass (early start/finish)
+   - Backward pass (late start/finish)
+   - Slack for all tasks
+
+   After calling this, use (critical-path project) to get critical tasks."
+  (forward-pass project)
+  (backward-pass project)
+  (calculate-slack project)
+  t)
 
 ;;; ============================================================================
 ;;; Task Scheduling
@@ -37,10 +56,11 @@
   (cond
     ;; Milestone: end date = start date
     ((task-milestone-p task)
-     (unless (task-start task)
-       (error "Milestone ~A has no start date" (task-id task)))
-     (setf (task-end task) (task-start task))
-     (setf (task-scheduled-p task) t))
+     (let ((start (or (task-start task)
+                      (calculate-earliest-start task))))
+       (setf (task-start task) start)
+       (setf (task-end task) start)
+       (setf (task-scheduled-p task) t)))
 
     ;; Task with duration
     ((task-duration task)
@@ -50,13 +70,13 @@
        (setf (task-end task) (date+ start (task-duration task)))
        (setf (task-scheduled-p task) t)))
 
-    ;; Task with effort (TODO: implement resource-based scheduling)
+    ;; Task with effort (resource-based scheduling)
     ((task-effort task)
-     (let ((start (or (task-start task)
-                      (calculate-earliest-start task))))
+     (let* ((start (or (task-start task)
+                       (calculate-earliest-start task)))
+            (duration (calculate-duration-from-effort task)))
        (setf (task-start task) start)
-       ;; For now, treat effort as duration
-       (setf (task-end task) (date+ start (task-effort task)))
+       (setf (task-end task) (date+ start duration))
        (setf (task-scheduled-p task) t)))
 
     ;; No duration or effort - error
@@ -79,6 +99,42 @@
                   (when (date> target-end latest-end)
                     (setf latest-end target-end))))))
         (or latest-end (project-start (task-project task))))))
+
+(defun calculate-duration-from-effort (task)
+  "Calculate actual duration for an effort-based task considering resource efficiency.
+
+   Formula: duration = effort / total_efficiency
+
+   Where total_efficiency is the sum of efficiency values of all allocated resources.
+   If no resources are allocated, uses efficiency of 1.0 (treat effort as duration).
+
+   Examples:
+     - Task with 10 days effort, 1 resource at 1.0 efficiency => 10 days duration
+     - Task with 10 days effort, 1 resource at 2.0 efficiency => 5 days duration
+     - Task with 10 days effort, 2 resources at 1.0 efficiency => 5 days duration
+     - Task with 10 days effort, no resources => 10 days duration (warning issued)"
+  (let ((effort (task-effort task))
+        (allocations (task-allocations task)))
+    (if (null allocations)
+        (progn
+          (warn "Task ~A has effort but no resource allocations - treating effort as duration"
+                (task-id task))
+          effort)
+        ;; Calculate total efficiency from allocated resources
+        (let ((total-efficiency 0.0))
+          (dolist (allocation allocations)
+            (dolist (resource (allocation-resources allocation))
+              (incf total-efficiency (resource-efficiency resource))))
+
+          (if (zerop total-efficiency)
+              (progn
+                (warn "Task ~A has resources with zero total efficiency - treating effort as duration"
+                      (task-id task))
+                effort)
+              ;; Calculate duration = effort / efficiency
+              ;; Need to convert to same time units
+              (let ((effort-days (duration-in-days effort)))
+                (duration (ceiling (/ effort-days total-efficiency)) :days)))))))
 
 ;;; ============================================================================
 ;;; Topological Sort

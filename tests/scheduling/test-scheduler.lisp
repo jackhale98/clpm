@@ -248,3 +248,116 @@
       ;; t2 should start after t1 ends (2024-03-06) and last 3 days
       (is (date= (date 2024 3 6) (task-start t2)))
       (is (date= (date 2024 3 9) (task-end t2))))))
+
+;;; ============================================================================
+;;; Effort-Based Scheduling Tests
+;;; ============================================================================
+
+(test effort-with-single-resource
+  "Schedule effort-based task with single resource"
+  (with-test-project
+    (defresource dev "Developer" :efficiency 1.0)
+
+    (deftask task1 "Task 1"
+      :start (date 2024 3 1)
+      :effort (duration 10 :days)
+      :allocate (dev))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((task (gethash 'task1 (project-tasks *current-project*))))
+      ;; Task should be scheduled
+      (is (task-scheduled-p task))
+      ;; Start date should be 2024-03-01
+      (is (date= (date 2024 3 1) (task-start task)))
+      ;; Duration = effort / efficiency = 10 / 1.0 = 10 days
+      ;; End date should be 2024-03-11
+      (is (date= (date 2024 3 11) (task-end task))))))
+
+(test effort-with-high-efficiency-resource
+  "Effort-based task with high efficiency resource completes faster"
+  (with-test-project
+    (defresource senior-dev "Senior Developer" :efficiency 2.0)
+
+    (deftask task1 "Task 1"
+      :start (date 2024 3 1)
+      :effort (duration 10 :days)
+      :allocate (senior-dev))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((task (gethash 'task1 (project-tasks *current-project*))))
+      ;; Duration = effort / efficiency = 10 / 2.0 = 5 days
+      ;; End date should be 2024-03-06
+      (is (date= (date 2024 3 6) (task-end task))))))
+
+(test effort-with-low-efficiency-resource
+  "Effort-based task with low efficiency resource takes longer"
+  (with-test-project
+    (defresource junior-dev "Junior Developer" :efficiency 0.5)
+
+    (deftask task1 "Task 1"
+      :start (date 2024 3 1)
+      :effort (duration 10 :days)
+      :allocate (junior-dev))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((task (gethash 'task1 (project-tasks *current-project*))))
+      ;; Duration = effort / efficiency = 10 / 0.5 = 20 days
+      ;; End date should be 2024-03-21
+      (is (date= (date 2024 3 21) (task-end task))))))
+
+(test effort-with-multiple-resources
+  "Effort-based task with multiple resources combines efficiency"
+  (with-test-project
+    (defresource dev1 "Developer 1" :efficiency 1.0)
+    (defresource dev2 "Developer 2" :efficiency 1.5)
+
+    (deftask task1 "Task 1"
+      :start (date 2024 3 1)
+      :effort (duration 20 :days)
+      :allocate (dev1 dev2))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((task (gethash 'task1 (project-tasks *current-project*))))
+      ;; Total efficiency = 1.0 + 1.5 = 2.5
+      ;; Duration = effort / total_efficiency = 20 / 2.5 = 8 days
+      ;; End date should be 2024-03-09
+      (is (date= (date 2024 3 9) (task-end task))))))
+
+(test effort-without-resources-uses-effort-as-duration
+  "Effort-based task without resources treats effort as duration"
+  (with-test-project
+    (deftask task1 "Task 1"
+      :start (date 2024 3 1)
+      :effort (duration 10 :days))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((task (gethash 'task1 (project-tasks *current-project*))))
+      ;; Should treat effort as duration when no resources allocated
+      ;; End date should be 2024-03-11
+      (is (date= (date 2024 3 11) (task-end task))))))
+
+(test calculate-duration-from-effort-function
+  "Test the calculate-duration-from-effort helper function"
+  (with-test-project
+    (defresource dev "Developer" :efficiency 1.5)
+
+    (deftask task1 "Task 1"
+      :effort (duration 15 :days)
+      :allocate (dev))
+
+    (finalize-project *current-project*)
+
+    (let ((task (gethash 'task1 (project-tasks *current-project*))))
+      (let ((calculated-duration (calculate-duration-from-effort task)))
+        ;; Duration = 15 / 1.5 = 10 days
+        (is (= 10 (duration-in-days calculated-duration)))))))

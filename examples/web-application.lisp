@@ -9,6 +9,19 @@
 ;;;; - Critical path analysis
 ;;;; - EVM tracking
 
+;;; Load the project-juggler system
+(require :asdf)
+(push (truename "../") asdf:*central-registry*)
+
+;; Load quicklisp if available
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                       (user-homedir-pathname))))
+  (when (probe-file quicklisp-init)
+    (load quicklisp-init)))
+
+;; Load dependencies and project-juggler
+(ql:quickload :project-juggler :silent t)
+
 (in-package :project-juggler)
 
 ;;; =============================================================================
@@ -284,7 +297,41 @@
 
   (deftask project-complete "Project Complete"
     :milestone t
-    :depends-on (monitoring documentation support)))
+    :depends-on (monitoring documentation support))
+
+  ;;; ---------------------------------------------------------------------------
+  ;;; REPORTS
+  ;;; ---------------------------------------------------------------------------
+
+  (defreport project-summary "SaaS Platform Development - Task Summary"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :duration :priority)
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+
+  (defreport csv-export "Task Export"
+    :type :task
+    :format :csv
+    :columns (:id :name :start :end :duration :priority))
+
+  (defreport critical-path-report "Critical Path Tasks"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :slack :priority)
+    :filter (lambda (task) (and (task-slack task) (zerop (task-slack task))))
+    :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+
+  (defreport high-priority-tasks "High Priority Tasks"
+    :type :task
+    :format :html
+    :columns (:id :name :start :end :priority :slack)
+    :filter (lambda (task) (> (task-priority task) 900))
+    :sort-by (lambda (a b) (> (task-priority a) (task-priority b))))
+
+  (defreport resource-utilization "Resource Utilization"
+    :type :resource
+    :format :html
+    :columns (:id :name :efficiency :rate :criticalness)))
 
 ;;; =============================================================================
 ;;; ANALYSIS AND REPORTING
@@ -328,10 +375,7 @@
 (format t "CRITICAL PATH ANALYSIS~%")
 (format t "─────────────────────────────────────────────────────────────────~%")
 
-(forward-pass *current-project*)
-(backward-pass *current-project*)
-(calculate-slack *current-project*)
-
+;; Note: schedule automatically calculates critical path using CPM
 (let ((critical-tasks (critical-path *current-project*)))
   (format t "Critical path contains ~A tasks:~%~%" (length critical-tasks))
   (let ((display-count (min 10 (length critical-tasks))))
@@ -380,45 +424,36 @@
   (format t "  Date: ~A~%" (baseline-date baseline))
   (format t "  Tasks: ~A~%~%" (hash-table-count (baseline-tasks baseline))))
 
-;; Generate HTML report
+;; Generate reports using DSL-defined reports
 (format t "─────────────────────────────────────────────────────────────────~%")
 (format t "GENERATING REPORTS~%")
 (format t "─────────────────────────────────────────────────────────────────~%")
 
-(let ((report (make-instance 'task-report
-                :id 'project-summary
-                :title "SaaS Platform Development - Task Summary"
-                :format :html
-                :columns '(:id :name :start :end :duration :priority)
-                :sort-by (lambda (a b) (date< (task-start a) (task-start b))))))
+(save-project-report *current-project* 'project-summary "web-application-report.html")
+(format t "✓ HTML report: web-application-report.html~%")
 
-  (with-open-file (out "examples/web-application-report.html"
-                       :direction :output
-                       :if-exists :supersede)
-    (write-string (generate-report report *current-project*) out))
+(save-project-report *current-project* 'csv-export "web-application-tasks.csv")
+(format t "✓ CSV export: web-application-tasks.csv~%")
 
-  (format t "✓ HTML report: examples/web-application-report.html~%"))
+(save-project-report *current-project* 'critical-path-report "web-application-critical.html")
+(format t "✓ Critical path report: web-application-critical.html~%")
 
-;; Generate CSV export
-(let ((report (make-instance 'task-report
-                :id 'csv-export
-                :title "Task Export"
-                :format :csv
-                :columns '(:id :name :start :end :duration :priority))))
+(save-project-report *current-project* 'high-priority-tasks "web-application-priority.html")
+(format t "✓ High priority tasks: web-application-priority.html~%")
 
-  (with-open-file (out "examples/web-application-tasks.csv"
-                       :direction :output
-                       :if-exists :supersede)
-    (write-string (generate-report report *current-project*) out))
-
-  (format t "✓ CSV export: examples/web-application-tasks.csv~%"))
+(save-project-report *current-project* 'resource-utilization "web-application-resources.html")
+(format t "✓ Resource utilization: web-application-resources.html~%")
 
 (format t "~%─────────────────────────────────────────────────────────────────~%")
 (format t "✓ EXAMPLE COMPLETE!~%")
 (format t "─────────────────────────────────────────────────────────────────~%")
-(format t "~%Next steps:~%")
-(format t "• Open examples/web-application-report.html in your browser~%")
-(format t "• Examine examples/web-application-tasks.csv in a spreadsheet~%")
+(format t "~%Generated files:~%")
+(format t "• web-application-report.html (complete task summary)~%")
+(format t "• web-application-tasks.csv (CSV export)~%")
+(format t "• web-application-critical.html (critical path tasks only)~%")
+(format t "• web-application-priority.html (high priority tasks)~%")
+(format t "• web-application-resources.html (resource utilization)~%~%")
+(format t "Next steps:~%")
 (format t "• Try modifying task completion percentages~%")
 (format t "• Calculate EVM metrics to track progress~%~%")
 
@@ -431,6 +466,6 @@
 (format t "(let ((pv (calculate-planned-value *current-project* (local-time:now)))~%")
 (format t "      (ev (calculate-earned-value *current-project*))~%")
 (format t "      (spi (calculate-spi *current-project* (local-time:now))))~%")
-(format t "  (format t \"PV: ~~A%%, EV: ~~A%%, SPI: ~~,2F~~%%\" pv ev spi))~%~%")
+(format t "  (format t \"PV: ~~~~A%%, EV: ~~~~A%%, SPI: ~~~~,2F~~~~%%\" pv ev spi))~%~%")
 
 (format t "═══════════════════════════════════════════════════════════════════~%~%")
