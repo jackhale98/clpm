@@ -4,6 +4,7 @@
 (in-package #:project-juggler-tests)
 
 (def-suite calendar-suite
+  :in scheduling-suite
   :description "Working time calendar tests")
 
 (in-suite calendar-suite)

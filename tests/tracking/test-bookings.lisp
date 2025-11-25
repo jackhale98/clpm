@@ -4,6 +4,7 @@
 (in-package #:project-juggler-tests)
 
 (def-suite bookings-suite
+  :in project-juggler-suite
   :description "Bookings and actual time tracking tests")
 
 (in-suite bookings-suite)

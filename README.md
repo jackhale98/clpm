@@ -43,23 +43,58 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
 - **SBCL** (Steel Bank Common Lisp) 2.0 or later
 - **Quicklisp** (Common Lisp package manager)
 
-### Quick Start
+### Install as a Library (Recommended for Users)
 
 ```bash
-# Clone the repository
+# Option 1: Install to Quicklisp local-projects (works from any directory)
+cd ~/quicklisp/local-projects/
 git clone https://github.com/yourusername/project-juggler.git
-cd project-juggler
 
-# Load with Quicklisp
+# Option 2: Or symlink your development copy
+ln -s /path/to/your/project-juggler ~/quicklisp/local-projects/
+```
+
+Now from **any directory** on your system:
+
+```bash
 sbcl
 ```
 
 ```lisp
-;; In SBCL REPL:
+;; Load the library
+(ql:quickload :project-juggler)
+(in-package :project-juggler)
+
+;; Start creating projects!
+```
+
+### For Development/Testing (Inside the Repository)
+
+```bash
+# Clone and work inside the repository
+git clone https://github.com/yourusername/project-juggler.git
+cd project-juggler
+sbcl
+```
+
+```lisp
+;; Load from current directory
 (push (truename ".") asdf:*central-registry*)
 (ql:quickload :project-juggler)
 (in-package :project-juggler)
 ```
+
+**See [USAGE.md](USAGE.md) for detailed usage patterns and real-world examples.**
+
+### Verification
+
+After installation, verify it works:
+
+```bash
+sbcl --eval "(ql:quickload :project-juggler)" --eval "(format t \"✓ Project Juggler loaded successfully!~%\")" --quit
+```
+
+If you see "✓ Project Juggler loaded successfully!" - you're ready to go!
 
 ### Running Tests
 
@@ -72,8 +107,12 @@ sbcl --script run-tests.lisp
 
 ## 🚀 Quick Example
 
+Create a file `~/my-projects/website.lisp`:
+
 ```lisp
-(use-package :project-juggler)
+;; Load the library (works from any directory!)
+(ql:quickload :project-juggler :silent t)
+(in-package :project-juggler)
 
 ;; Define a web application project
 (defproject web-app "Web Application Launch"
@@ -146,6 +185,16 @@ sbcl --script run-tests.lisp
 (save-project-report *current-project* 'summary "report.html")
 (save-project-report *current-project* 'critical-only "critical.html")
 ```
+
+Run it from anywhere:
+
+```bash
+cd ~/my-projects
+sbcl --script website.lisp
+# Creates report.html and critical.html in current directory
+```
+
+**Note:** The examples in `examples/` directory are for demonstration and testing within the repository. For real-world usage, see [USAGE.md](USAGE.md).
 
 ## 📖 Documentation
 
@@ -546,13 +595,26 @@ project-juggler/
 
 ## 📚 Examples
 
-See the [`examples/`](examples/) directory for complete project examples:
+### Repository Examples (For Learning)
 
-- **simple-project.lisp** - Simple website redesign (6 tasks, demonstrates basics)
+The [`examples/`](examples/) directory contains demonstration projects:
+
+- **time-tracking-project.lisp** - Calendars + bookings + EVM integration
+- **simple-project.lisp** - Website redesign (6 tasks, demonstrates basics)
 - **web-application.lisp** - Complex SaaS platform (40+ tasks, multiple teams)
-- **effort-scheduling.lisp** - Demonstrates effort-based scheduling with resource efficiency
+- **effort-scheduling.lisp** - Effort-based scheduling with resource efficiency
 
-Each example is runnable: `sbcl --script examples/simple-project.lisp`
+Run from repository root: `sbcl --script examples/simple-project.lisp`
+
+### Real-World Usage
+
+For using Project Juggler in your own projects, see **[USAGE.md](USAGE.md)** which shows:
+- ✅ Installing as a proper library
+- ✅ Creating project files in your own directories
+- ✅ Loading from anywhere on your system
+- ✅ Version controlling your projects
+- ✅ Team collaboration patterns
+- ✅ Integration with your applications
 
 ## 🤝 Contributing
 

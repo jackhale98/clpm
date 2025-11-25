@@ -4,8 +4,15 @@
 (require :asdf)
 (in-package #:cl-user)
 
-;; Add current directory to ASDF registry
-(push (truename ".") asdf:*central-registry*)
+;; Add project root to ASDF registry
+;; Works whether running from examples/ or project root
+(let ((parent-dir (truename "../"))
+      (current-dir (truename ".")))
+  ;; Check if .asd file is in parent directory (running from examples/)
+  (if (probe-file (merge-pathnames "project-juggler.asd" parent-dir))
+      (push parent-dir asdf:*central-registry*)
+      ;; Otherwise assume we're in project root
+      (push current-dir asdf:*central-registry*)))
 
 ;; Load Quicklisp if available
 (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
@@ -19,6 +26,7 @@
   (error (e)
     (format t "Error loading project-juggler: ~A~%" e)
     (format t "Please ensure all dependencies are installed.~%")
+    (format t "Make sure you're running from either the project root or examples/ directory.~%")
     (uiop:quit 1)))
 
 (in-package :project-juggler)
