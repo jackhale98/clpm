@@ -82,11 +82,17 @@
          ""))
 
     ;; Duration columns
-    ((member column-name '(:duration :effort :slack))
+    ((member column-name '(:duration :effort))
      (if (typep value 'duration)
          (format nil "~A ~(~A~)"
                 (duration-value value)
                 (duration-unit value))
+         ""))
+
+    ;; Slack column (stored as number of days)
+    ((eq column-name :slack)
+     (if (numberp value)
+         (format nil "~A days" value)
          ""))
 
     ;; Numeric columns

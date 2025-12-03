@@ -81,23 +81,50 @@
     :allocate (developer)
     :priority 1000)
 
-  ;;; Reports - using defreport DSL
+  ;;; Reports - using enhanced defreport DSL
+
+  ;; Standard task summary report
   (defreport summary "Project Task Summary"
     :type :task
     :format :html
     :columns (:id :name :start :end :duration :priority))
 
+  ;; CSV export for spreadsheet analysis
   (defreport csv-export "Task Export"
     :type :task
     :format :csv
     :columns (:id :name :start :end :duration))
 
+  ;; Critical path report - NEW! Uses :type :critical-path for automatic filtering
   (defreport critical-tasks "Critical Path Tasks"
+    :type :critical-path
+    :format :html
+    :columns (:name :start :end :slack :priority))
+
+  ;; Milestone report - NEW! Shows only milestones
+  (defreport milestones "Project Milestones"
+    :type :milestone
+    :format :html
+    :columns (:name :start))
+
+  ;; Gantt chart - NEW! Visual project timeline
+  (defreport gantt-chart "Project Timeline"
+    :type :gantt
+    :format :html
+    :width 1000
+    :height 300)
+
+  ;; Gantt JSON export - NEW! For integration with other tools
+  (defreport gantt-json "Gantt Data Export"
+    :type :gantt
+    :format :json)
+
+  ;; High priority tasks using auto-filter - NEW!
+  (defreport high-priority "High Priority Tasks"
     :type :task
     :format :html
-    :columns (:id :name :start :end :slack :priority)
-    :filter (lambda (task) (and (task-slack task) (zerop (task-slack task))))
-    :sort-by (lambda (a b) (date< (task-start a) (task-start b)))))
+    :columns (:name :start :end :priority)
+    :auto-filter :high-priority))
 
 ;;; =============================================================================
 ;;; ANALYSIS AND REPORTING
@@ -180,7 +207,7 @@
   (format t "✓ Baseline created: ~A~%" (baseline-name baseline))
   (format t "  Tasks: ~A~%~%" (hash-table-count (baseline-tasks baseline))))
 
-;; Generate reports using the new DSL
+;; Generate reports using the enhanced DSL
 (format t "──────────────────────────────────────────────────────────~%")
 (format t "GENERATING REPORTS~%")
 (format t "──────────────────────────────────────────────────────────~%")
@@ -193,7 +220,20 @@
 (format t "✓ CSV export: simple-project-tasks.csv~%")
 
 (save-project-report *current-project* 'critical-tasks "simple-project-critical.html")
-(format t "✓ Critical path report: simple-project-critical.html~%~%")
+(format t "✓ Critical path report: simple-project-critical.html~%")
+
+;; NEW report types
+(save-project-report *current-project* 'milestones "simple-project-milestones.html")
+(format t "✓ Milestone report: simple-project-milestones.html~%")
+
+(save-project-report *current-project* 'gantt-chart "simple-project-gantt.html")
+(format t "✓ Gantt chart (HTML): simple-project-gantt.html~%")
+
+(save-project-report *current-project* 'gantt-json "simple-project-gantt.json")
+(format t "✓ Gantt data (JSON): simple-project-gantt.json~%")
+
+(save-project-report *current-project* 'high-priority "simple-project-priority.html")
+(format t "✓ High priority: simple-project-priority.html~%~%")
 
 (format t "──────────────────────────────────────────────────────────~%")
 (format t "✓ EXAMPLE COMPLETE!~%")
@@ -201,7 +241,11 @@
 (format t "~%Generated files:~%")
 (format t "• simple-project-report.html (open in browser)~%")
 (format t "• simple-project-tasks.csv (open in spreadsheet)~%")
-(format t "• simple-project-critical.html (critical path tasks only)~%~%")
+(format t "• simple-project-critical.html (critical path tasks only)~%")
+(format t "• simple-project-milestones.html (milestones only)~%")
+(format t "• simple-project-gantt.html (visual Gantt chart)~%")
+(format t "• simple-project-gantt.json (Gantt data for external tools)~%")
+(format t "• simple-project-priority.html (high priority tasks)~%~%")
 (format t "Now try these commands in the REPL:~%~%")
 
 (format t ";; View a specific task~%")

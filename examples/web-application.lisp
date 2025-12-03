@@ -300,38 +300,73 @@
     :depends-on (monitoring documentation support))
 
   ;;; ---------------------------------------------------------------------------
-  ;;; REPORTS
+  ;;; REPORTS - Enhanced DSL with new report types
   ;;; ---------------------------------------------------------------------------
 
+  ;; Standard task summary
   (defreport project-summary "SaaS Platform Development - Task Summary"
     :type :task
     :format :html
     :columns (:id :name :start :end :duration :priority)
     :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
 
+  ;; CSV export for spreadsheet analysis
   (defreport csv-export "Task Export"
     :type :task
     :format :csv
     :columns (:id :name :start :end :duration :priority))
 
+  ;; Critical path report - NEW! Uses dedicated :critical-path type
   (defreport critical-path-report "Critical Path Tasks"
-    :type :task
+    :type :critical-path
     :format :html
-    :columns (:id :name :start :end :slack :priority)
-    :filter (lambda (task) (and (task-slack task) (zerop (task-slack task))))
-    :sort-by (lambda (a b) (date< (task-start a) (task-start b))))
+    :columns (:name :start :end :slack :priority))
 
+  ;; High priority tasks - NEW! Uses :auto-filter
   (defreport high-priority-tasks "High Priority Tasks"
     :type :task
     :format :html
-    :columns (:id :name :start :end :priority :slack)
-    :filter (lambda (task) (> (task-priority task) 900))
-    :sort-by (lambda (a b) (> (task-priority a) (task-priority b))))
+    :columns (:name :start :end :priority :slack)
+    :auto-filter :high-priority)
 
+  ;; Incomplete tasks - NEW! Uses :auto-filter
+  (defreport incomplete-tasks "Incomplete Tasks"
+    :type :task
+    :format :html
+    :columns (:name :start :end :complete)
+    :auto-filter :incomplete)
+
+  ;; Resource utilization
   (defreport resource-utilization "Resource Utilization"
     :type :resource
     :format :html
-    :columns (:id :name :efficiency :rate :criticalness)))
+    :columns (:id :name :efficiency :rate :criticalness))
+
+  ;; Milestone report - NEW! Dedicated milestone type
+  (defreport milestones "Project Milestones"
+    :type :milestone
+    :format :html
+    :columns (:name :start))
+
+  ;; Gantt chart - NEW! Visual SVG timeline
+  (defreport gantt-svg "Project Timeline (SVG)"
+    :type :gantt
+    :format :svg
+    :width 1200
+    :height 800)
+
+  ;; Gantt chart - NEW! HTML with embedded SVG
+  (defreport gantt-html "Project Timeline"
+    :type :gantt
+    :format :html
+    :width 1200)
+
+  ;; EVM report - NEW! Earned Value Management tracking
+  (defreport evm-status "EVM Status Report"
+    :type :evm
+    :format :html
+    :columns (:name :pv :ev :sv)
+    :include-summary t))
 
 ;;; =============================================================================
 ;;; ANALYSIS AND REPORTING
@@ -424,11 +459,12 @@
   (format t "  Date: ~A~%" (baseline-date baseline))
   (format t "  Tasks: ~A~%~%" (hash-table-count (baseline-tasks baseline))))
 
-;; Generate reports using DSL-defined reports
+;; Generate reports using enhanced DSL-defined reports
 (format t "─────────────────────────────────────────────────────────────────~%")
 (format t "GENERATING REPORTS~%")
 (format t "─────────────────────────────────────────────────────────────────~%")
 
+;; Standard reports
 (save-project-report *current-project* 'project-summary "web-application-report.html")
 (format t "✓ HTML report: web-application-report.html~%")
 
@@ -444,6 +480,22 @@
 (save-project-report *current-project* 'resource-utilization "web-application-resources.html")
 (format t "✓ Resource utilization: web-application-resources.html~%")
 
+;; NEW enhanced reports
+(save-project-report *current-project* 'milestones "web-application-milestones.html")
+(format t "✓ Milestone report: web-application-milestones.html~%")
+
+(save-project-report *current-project* 'gantt-html "web-application-gantt.html")
+(format t "✓ Gantt chart (HTML): web-application-gantt.html~%")
+
+(save-project-report *current-project* 'gantt-svg "web-application-gantt.svg")
+(format t "✓ Gantt chart (SVG): web-application-gantt.svg~%")
+
+(save-project-report *current-project* 'evm-status "web-application-evm.html")
+(format t "✓ EVM status: web-application-evm.html~%")
+
+(save-project-report *current-project* 'incomplete-tasks "web-application-incomplete.html")
+(format t "✓ Incomplete tasks: web-application-incomplete.html~%")
+
 (format t "~%─────────────────────────────────────────────────────────────────~%")
 (format t "✓ EXAMPLE COMPLETE!~%")
 (format t "─────────────────────────────────────────────────────────────────~%")
@@ -452,7 +504,12 @@
 (format t "• web-application-tasks.csv (CSV export)~%")
 (format t "• web-application-critical.html (critical path tasks only)~%")
 (format t "• web-application-priority.html (high priority tasks)~%")
-(format t "• web-application-resources.html (resource utilization)~%~%")
+(format t "• web-application-resources.html (resource utilization)~%")
+(format t "• web-application-milestones.html (project milestones)~%")
+(format t "• web-application-gantt.html (visual Gantt chart)~%")
+(format t "• web-application-gantt.svg (SVG Gantt for embedding)~%")
+(format t "• web-application-evm.html (EVM status report)~%")
+(format t "• web-application-incomplete.html (incomplete tasks)~%~%")
 (format t "Next steps:~%")
 (format t "• Try modifying task completion percentages~%")
 (format t "• Calculate EVM metrics to track progress~%~%")

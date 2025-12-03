@@ -90,82 +90,10 @@
         (/ ev pv))))
 
 ;;; ============================================================================
-;;; Resource Over-Allocation Detection
+;;; Helper Functions
 ;;; ============================================================================
-
-(defun detect-resource-overallocations (project)
-  "Detect resource over-allocations in the project.
-
-   Returns a list of OVERALLOCATION objects for each detected issue."
-
-  (let ((overallocations nil))
-    (loop for resource being the hash-values of (project-resources project)
-          do (let ((resource-overallocs (detect-resource-overallocation resource project)))
-               (setf overallocations (append overallocations resource-overallocs))))
-    overallocations))
-
-(defun detect-resource-overallocation (resource project)
-  "Detect over-allocation for a single resource"
-  (let ((overallocations nil)
-        (allocated-tasks (get-resource-allocated-tasks resource project)))
-
-    ;; Check each day in the project
-    (when (>= (length allocated-tasks) 2)
-      ;; Simple check: if resource has 2+ tasks with overlapping dates
-      (dolist (task1 allocated-tasks)
-        (dolist (task2 allocated-tasks)
-          (when (and (not (eq task1 task2))
-                    (tasks-overlap-p task1 task2))
-            ;; Found an over-allocation
-            (let ((overlap-start (if (date> (task-start task1) (task-start task2))
-                                    (task-start task1)
-                                    (task-start task2))))
-              (push (make-instance 'overallocation
-                                  :resource-id (resource-id resource)
-                                  :date overlap-start
-                                  :load 2.0)  ; Simplified: assume 2x load
-                    overallocations))))))
-
-    ;; Return unique over-allocations
-    (remove-duplicates overallocations :key #'overallocation-date :test #'date=)))
-
-(defun get-resource-allocated-tasks (resource project)
-  "Get all tasks allocated to a resource"
-  (let ((tasks nil))
-    (loop for task being the hash-values of (project-tasks project)
-          do (dolist (alloc (task-allocations task))
-               (when (member resource (allocation-resources alloc))
-                 (push task tasks))))
-    tasks))
-
-(defun tasks-overlap-p (task1 task2)
-  "Check if two tasks overlap in time"
-  (and (task-start task1) (task-end task1)
-       (task-start task2) (task-end task2)
-       (not (or (date>= (task-start task1) (task-end task2))
-                (date>= (task-start task2) (task-end task1))))))
-
-(defun calculate-resource-load (resource date)
-  "Calculate resource load on a specific date"
-  (let ((load 0.0))
-    ;; This is a simplified implementation
-    ;; Count how many tasks this resource is working on at the given date
-    (dolist (alloc (resource-allocations resource))
-      (let ((task (allocation-task alloc)))
-        (when (and (task-start task) (task-end task)
-                  (date>= date (task-start task))
-                  (date< date (task-end task)))
-          (incf load 1.0))))
-    load))
-
-(defun resource-allocations (resource)
-  "Get all allocations for a resource (helper function)"
-  (let ((allocs nil))
-    (loop for task being the hash-values of (project-tasks (resource-project resource))
-          do (dolist (alloc (task-allocations task))
-               (when (member resource (allocation-resources alloc))
-                 (push alloc allocs))))
-    allocs))
+;;; Note: Resource over-allocation detection and leveling functions are in
+;;; src/scheduling/resource-allocation.lisp
 
 (defun date-difference-days (date1 date2)
   "Calculate difference between two dates in days"

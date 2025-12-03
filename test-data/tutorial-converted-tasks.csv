@@ -1,0 +1,15 @@
+Id,Name,Start,End,Duration,Effort
+SPEC,Specification,2002-01-16,2002-01-23,,20 days
+SOFTWARE,Software Development,2002-01-16,2002-02-28,,
+DATABASE,Database coupling,2002-01-16,2002-01-26,,20 days
+BACKEND,Back-End Functions,2002-01-26,2002-02-10,,30 days
+GUI,Graphical User Interface,2002-02-10,2002-02-28,,35 days
+TESTING,Software Testing,2002-02-28,2002-03-13,,
+ALPHA,Alpha Test,2002-02-28,2002-03-03,,5 days
+BETA,Beta Test,2002-03-03,2002-03-13,,20 days
+MANUAL,Manual,2002-01-16,2002-02-10,,50 days
+DELIVERIES,Milestones,2002-01-16,2002-03-13,,
+PROJECT-START,Project Start,2002-01-16,2002-01-16,,
+TECH-PREVIEW,Technology Preview,2002-02-10,2002-02-10,,
+BETA-VERSION,Beta Version,2002-03-03,2002-03-03,,
+SHIP,Ship Product to Customer,2002-03-13,2002-03-13,,

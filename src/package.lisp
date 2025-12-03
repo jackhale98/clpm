@@ -154,6 +154,17 @@
    #:forward-pass
    #:backward-pass
 
+   ;; Resource leveling
+   #:calculate-resource-load
+   #:detect-resource-overallocations
+   #:level-resources
+   #:overallocation
+   #:overallocation-resource-id
+   #:overallocation-resource
+   #:overallocation-date
+   #:overallocation-load
+   #:overallocation-tasks
+
    ;; Session management
    #:session
    #:session-project
@@ -183,6 +194,17 @@
    #:collect-resources-for-report
    #:sort-tasks-for-report
    #:generate-gantt-data
+   #:generate-gantt-json
+   #:generate-gantt-svg
+   #:generate-gantt-html
+   #:format-cell
+   #:get-auto-filter
+   #:gantt-report
+   #:critical-path-report
+   #:milestone-report
+   #:evm-report
+   #:simulation-report
+   #:risk-report
    #:defreport
    #:generate-project-report
    #:save-project-report
@@ -238,6 +260,24 @@
    #:detect-resource-overallocations
    #:calculate-resource-load
 
+   ;; Cost tracking
+   #:project-budget
+   #:task-fixed-cost
+   #:calculate-task-planned-cost
+   #:calculate-task-actual-cost
+   #:calculate-project-planned-cost
+   #:calculate-project-actual-cost
+   #:project-budget-remaining
+   #:calculate-actual-cost
+   #:calculate-earned-value-cost
+   #:calculate-cost-variance
+   #:calculate-cpi-cost
+   #:calculate-bac
+   #:calculate-eac
+   #:calculate-etc
+   #:calculate-vac
+   #:generate-cost-report
+
    ;; Working time calendars
    #:calendar
    #:calendar-p
@@ -258,6 +298,180 @@
    #:add-holiday
    #:holiday-p
    #:date-day-of-week
+
+   ;; PERT three-point estimation
+   #:pert-estimate
+   #:pert-estimate-p
+   #:estimate-optimistic
+   #:estimate-likely
+   #:estimate-pessimistic
+   #:task-estimate
+   #:pert-expected-duration
+   #:pert-standard-deviation
+   #:pert-variance
+   #:pert-confidence-interval
+   #:project-pert-expected-duration
+   #:project-pert-variance
+   #:project-pert-standard-deviation
+   #:project-pert-confidence-interval
+   #:probability-of-completion-by
+   #:project-probability-of-completion-by
+   #:pert-duration-for-scheduling
+
+   ;; What-if scenarios
+   #:what-if-scenario
+   #:create-scenario
+   #:scenario-name
+   #:scenario-project
+   #:scenario-description
+   #:scenario-created-at
+   #:scenario-task-modifications
+   #:scenario-task-snapshots
+   #:scenario-added-dependencies
+   #:scenario-removed-dependencies
+   #:scenario-scheduled-data
+   #:snapshot-task
+   #:scenario-modify-task
+   #:scenario-add-dependency
+   #:scenario-remove-dependency
+   #:schedule-scenario
+   #:scenario-topological-sort
+   #:schedule-scenario-task
+   #:scenario-earliest-start
+   #:get-scenario-task-data
+   #:scenario-end-date
+   #:scenario-total-duration
+   #:scenario-total-cost
+   #:list-scenarios
+   #:get-scenario
+   #:delete-scenario
+   #:compare-scenarios
+   #:scenario-summary
+   #:scenario-critical-path
+
+   ;; Resource availability
+   #:leave
+   #:leave-p
+   #:leave-type
+   #:leave-start
+   #:leave-end
+   #:leave-description
+   #:resource-leaves
+   #:resource-daily-limit
+   #:resource-weekly-limit
+   #:resource-calendar
+   #:resource-available-p
+   #:resource-on-leave-p
+   #:resource-available-hours
+   #:effective-available-hours
+   #:detect-leave-conflicts
+   #:leave-conflict
+   #:conflict-resource
+   #:conflict-leave
+   #:conflict-task
+   #:availability-summary
+   #:allocation-percent
+   #:allocation-resource-percents
+   #:get-allocation-percent-for-resource
+   #:calculate-effective-efficiency
+
+   ;; Task constraints
+   #:task-constraint
+   #:task-constraint-p
+   #:constraint-type
+   #:constraint-date
+   #:make-task-constraint
+   #:task-start-constraint
+   #:task-finish-constraint
+   #:apply-start-constraint
+   #:apply-finish-constraint
+   #:constraint-conflict
+   #:conflict-task-id
+   #:conflict-description
+   #:conflict-constraint-type
+   #:conflict-expected-date
+   #:conflict-actual-date
+   #:detect-constraint-conflicts
+
+   ;; Recurring tasks
+   #:recurring-definition
+   #:recurring-definition-p
+   #:recurring-frequency
+   #:recurring-start-date
+   #:recurring-end-date
+   #:recurring-day
+   #:recurring-days
+   #:recurring-exceptions
+   #:task-recurring
+   #:expand-recurring-tasks
+   #:expand-recurring-definition
+   #:get-recurring-tasks
+
+   ;; Risk register
+   #:risk
+   #:risk-p
+   #:risk-id
+   #:risk-name
+   #:risk-description
+   #:risk-probability
+   #:risk-impact
+   #:risk-category
+   #:risk-status
+   #:risk-owner
+   #:risk-mitigation
+   #:risk-contingency
+   #:risk-tasks
+   #:risk-schedule-impact
+   #:risk-cost-impact-amount
+   #:risk-created-at
+   #:risk-updated-at
+   #:risk-response-history
+   #:risk-score
+   #:risk-severity
+   #:create-risk
+   #:get-risk
+   #:delete-risk
+   #:update-risk
+   #:get-task-risks
+   #:project-risks
+   #:project-risk-register
+   #:filter-risks-by-status
+   #:filter-risks-by-category
+   #:filter-risks-by-min-severity
+   #:sort-risks-by-score
+   #:risk-schedule-impact-days
+   #:risk-register-summary
+   #:project-expected-monetary-value
+   #:add-risk-response
+
+   ;; Monte Carlo simulation
+   #:simulation-trial
+   #:trial-number
+   #:trial-project-duration
+   #:trial-task-durations
+   #:trial-task-end-dates
+   #:trial-critical-path
+   #:trial-end-date
+   #:trial-risk-occurrences
+   #:simulation-results
+   #:simulation-project
+   #:simulation-trials
+   #:simulation-trial-count
+   #:simulation-durations
+   #:simulation-mean
+   #:simulation-std-dev
+   #:simulation-min
+   #:simulation-max
+   #:simulation-risk-occurrence-counts
+   #:sample-pert-duration
+   #:run-simulation-trial
+   #:run-monte-carlo-simulation
+   #:run-risk-simulation
+   #:simulation-percentile
+   #:simulation-probability-of-completion
+   #:simulation-histogram
+   #:simulation-risk-occurrences
+   #:simulation-summary
 
    ;; Error conditions
    #:project-juggler-error

@@ -156,6 +156,38 @@
       (let ((alloc (first (task-allocations task))))
         (is (= 2 (length (allocation-resource-refs alloc))))))))
 
+;;; deftask with complete percentage
+
+(test deftask-with-complete
+  "Can define task with completion percentage"
+  (with-test-project
+    (eval '(deftask task1 "Task 1"
+             :duration (duration 10 :days)
+             :complete 75))
+
+    (let ((task (resolve-task-reference 'task1)))
+      (is (= 75 (task-complete task))))))
+
+(test deftask-with-complete-zero
+  "Can define task with zero completion"
+  (with-test-project
+    (eval '(deftask task1 "Task 1"
+             :duration (duration 5 :days)
+             :complete 0))
+
+    (let ((task (resolve-task-reference 'task1)))
+      (is (= 0 (task-complete task))))))
+
+(test deftask-with-complete-100
+  "Can define task with 100% completion"
+  (with-test-project
+    (eval '(deftask task1 "Task 1"
+             :duration (duration 5 :days)
+             :complete 100))
+
+    (let ((task (resolve-task-reference 'task1)))
+      (is (= 100 (task-complete task))))))
+
 ;;; deftask hierarchy
 
 (test deftask-with-subtasks
@@ -171,3 +203,47 @@
             (child2 (resolve-task-reference 'child2)))
         (is (eq parent (task-parent child1)))
         (is (eq parent (task-parent child2)))))))
+
+;;; Parent task duration calculation
+
+(test parent-task-duration-from-subtasks
+  "Parent task should allow no duration when it has subtasks"
+  (with-test-project
+    ;; Parent task with no duration - should be allowed
+    (eval '(deftask parent "Parent Task"
+             :priority 1000
+             (deftask child1 "Child 1"
+               :duration (duration 5 :days))
+             (deftask child2 "Child 2"
+               :duration (duration 3 :days)
+               :depends-on (child1))))
+
+    (let ((parent (resolve-task-reference 'parent)))
+      ;; Parent should exist and have subtasks
+      (is (not (null parent)))
+      (is (= 2 (length (task-subtasks parent))))
+      ;; Parent should not have its own duration/effort
+      (is (null (task-duration parent)))
+      (is (null (task-effort parent))))))
+
+(test parent-task-scheduling
+  "Parent task dates should be calculated from subtask span after scheduling"
+  (with-test-project
+    (eval '(deftask parent "Parent Task"
+             (deftask child1 "Child 1"
+               :start (date 2024 3 1)
+               :duration (duration 5 :days))
+             (deftask child2 "Child 2"
+               :duration (duration 3 :days)
+               :depends-on (child1))))
+
+    (finalize-project *current-project*)
+    (schedule *current-project*)
+
+    (let ((parent (resolve-task-reference 'parent))
+          (child1 (resolve-task-reference 'child1))
+          (child2 (resolve-task-reference 'child2)))
+      ;; Parent start should be earliest child start
+      (is (date= (task-start child1) (task-start parent)))
+      ;; Parent end should be latest child end
+      (is (date= (task-end child2) (task-end parent))))))

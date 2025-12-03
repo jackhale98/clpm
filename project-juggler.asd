@@ -51,7 +51,9 @@
                    (:file "criticalness")
                    (:file "critical-path")
                    (:file "resource-allocation")
-                   (:file "calendars")))
+                   (:file "calendars")
+                   (:file "availability")
+                   (:file "pert")))
                  (:module "session"
                   :serial t
                   :components
@@ -65,6 +67,7 @@
                   ((:file "baseline")
                    (:file "evm")
                    (:file "bookings")
+                   (:file "costs")
                    (:file "scenarios")))
                  (:module "reporting"
                   :serial t
@@ -85,6 +88,10 @@
                   :components
                   ((:file "risk")
                    (:file "simulation")))
+                 (:module "constraints"
+                  :serial t
+                  :components
+                  ((:file "constraints")))
                  (:module "utils"
                   :serial t
                   :components
@@ -129,7 +136,10 @@
                   ((:file "test-scheduler")
                    (:file "test-critical-path")
                    (:file "test-resource-allocation")
-                   (:file "test-calendars")))
+                   (:file "test-calendars")
+                   (:file "test-dependency-types")
+                   (:file "test-availability")
+                   (:file "test-pert")))
                  (:module "session"
                   :serial t
                   :components
@@ -138,12 +148,27 @@
                  (:module "reporting"
                   :serial t
                   :components
-                  ((:file "test-reports")))
+                  ((:file "test-reports")
+                   (:file "test-enhanced-reports")))
                  (:module "tracking"
                   :serial t
                   :components
                   ((:file "test-evm")
-                   (:file "test-bookings")))
+                   (:file "test-bookings")
+                   (:file "test-costs")))
+                (:module "scenarios"
+                  :serial t
+                  :components
+                  ((:file "test-scenarios")))
+                (:module "risk"
+                  :serial t
+                  :components
+                  ((:file "test-risk")
+                   (:file "test-simulation")))
+                (:module "constraints"
+                  :serial t
+                  :components
+                  ((:file "test-constraints")))
                  (:module "integration"
                   :serial t
                   :components

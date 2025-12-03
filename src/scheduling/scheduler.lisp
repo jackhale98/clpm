@@ -3,6 +3,9 @@
 
 (in-package #:project-juggler)
 
+;;; Forward declaration for PERT duration calculation (defined in pert.lisp)
+(declaim (ftype (function (t) t) pert-duration-for-scheduling))
+
 ;;; ============================================================================
 ;;; Main Scheduling Entry Point
 ;;; ============================================================================
@@ -56,62 +59,192 @@
   (cond
     ;; Milestone: end date = start date
     ((task-milestone-p task)
-     (let ((start (or (task-start task)
-                      (calculate-earliest-start task))))
+     (let* ((proposed-start (or (task-start task)
+                                (calculate-earliest-start task)))
+            (start (apply-start-constraint task proposed-start)))
        (setf (task-start task) start)
        (setf (task-end task) start)
        (setf (task-scheduled-p task) t)))
 
     ;; Task with duration
     ((task-duration task)
-     (let ((start (or (task-start task)
-                      (calculate-earliest-start task))))
-       (setf (task-start task) start)
-       (setf (task-end task) (date+ start (task-duration task)))
+     (let* ((proposed-start (or (task-start task)
+                                (calculate-earliest-start task)))
+            (start (apply-start-constraint task proposed-start))
+            (duration (task-duration task))
+            (proposed-end (date+ start duration)))
+       ;; Apply finish constraint
+       (multiple-value-bind (adjusted-start adjusted-end)
+           (apply-finish-constraint task proposed-end duration)
+         (if adjusted-start
+             (progn
+               (setf (task-start task) adjusted-start)
+               (setf (task-end task) adjusted-end))
+             (progn
+               (setf (task-start task) start)
+               (setf (task-end task) proposed-end))))
        (setf (task-scheduled-p task) t)))
 
     ;; Task with effort (resource-based scheduling)
     ((task-effort task)
-     (let* ((start (or (task-start task)
-                       (calculate-earliest-start task)))
-            (duration (calculate-duration-from-effort task)))
-       (setf (task-start task) start)
-       (setf (task-end task) (date+ start duration))
+     (let* ((proposed-start (or (task-start task)
+                                (calculate-earliest-start task)))
+            (start (apply-start-constraint task proposed-start))
+            (duration (calculate-duration-from-effort task))
+            (proposed-end (date+ start duration)))
+       ;; Apply finish constraint
+       (multiple-value-bind (adjusted-start adjusted-end)
+           (apply-finish-constraint task proposed-end duration)
+         (if adjusted-start
+             (progn
+               (setf (task-start task) adjusted-start)
+               (setf (task-end task) adjusted-end))
+             (progn
+               (setf (task-start task) start)
+               (setf (task-end task) proposed-end))))
        (setf (task-scheduled-p task) t)))
+
+    ;; Task with PERT estimate (use expected duration)
+    ((task-estimate task)
+     (let* ((proposed-start (or (task-start task)
+                                (calculate-earliest-start task)))
+            (start (apply-start-constraint task proposed-start))
+            (duration (pert-duration-for-scheduling task))
+            (proposed-end (date+ start duration)))
+       ;; Apply finish constraint
+       (multiple-value-bind (adjusted-start adjusted-end)
+           (apply-finish-constraint task proposed-end duration)
+         (if adjusted-start
+             (progn
+               (setf (task-start task) adjusted-start)
+               (setf (task-end task) adjusted-end))
+             (progn
+               (setf (task-start task) start)
+               (setf (task-end task) proposed-end))))
+       (setf (task-scheduled-p task) t)))
+
+    ;; Parent task with subtasks but no duration/effort
+    ;; Calculate dates from subtask span
+    ((task-subtasks task)
+     (calculate-parent-dates-from-subtasks task)
+     (setf (task-scheduled-p task) t))
 
     ;; No duration or effort - error
     (t
      (error "Task ~A has neither duration nor effort" (task-id task)))))
 
+(defun calculate-parent-dates-from-subtasks (parent-task)
+  "Calculate parent task start/end dates from subtask span.
+
+   Parent start = earliest subtask start
+   Parent end = latest subtask end"
+  (let ((earliest-start nil)
+        (latest-end nil))
+
+    (dolist (subtask (task-subtasks parent-task))
+      (let ((sub-start (task-start subtask))
+            (sub-end (task-end subtask)))
+        ;; Track earliest start
+        (when sub-start
+          (if (null earliest-start)
+              (setf earliest-start sub-start)
+              (when (date< sub-start earliest-start)
+                (setf earliest-start sub-start))))
+        ;; Track latest end
+        (when sub-end
+          (if (null latest-end)
+              (setf latest-end sub-end)
+              (when (date> sub-end latest-end)
+                (setf latest-end sub-end))))))
+
+    ;; Set parent task dates
+    (when earliest-start
+      (setf (task-start parent-task) earliest-start))
+    (when latest-end
+      (setf (task-end parent-task) latest-end))))
+
 (defun calculate-earliest-start (task)
-  "Calculate earliest start date based on dependencies"
+  "Calculate earliest start date based on dependencies.
+
+   Handles all dependency types:
+   - FS (Finish-to-Start): dependent starts when predecessor finishes
+   - SS (Start-to-Start): dependent starts when predecessor starts
+   - FF (Finish-to-Finish): dependent finishes when predecessor finishes
+   - SF (Start-to-Finish): dependent finishes when predecessor starts
+
+   For FF and SF dependencies, this function calculates the required start
+   date based on the end constraint and task duration."
   (if (null (task-dependencies task))
       ;; No dependencies: use project start
       (project-start (task-project task))
-      ;; Has dependencies: start after all dependencies finish
-      (let ((latest-end nil))
+      ;; Has dependencies: calculate start based on dependency types
+      (let ((latest-start nil)
+            (task-dur (or (task-duration task)
+                          (when (task-effort task)
+                            (duration (duration-in-days (task-effort task)) :days))
+                          (duration 1 :days))))  ; Default to 1 day if unknown
         (dolist (dep (task-dependencies task))
           (let* ((target (dependency-target dep))
-                 (target-end (when target (task-end target))))
-            (when target-end
-              (if (null latest-end)
-                  (setf latest-end target-end)
-                  (when (date> target-end latest-end)
-                    (setf latest-end target-end))))))
-        (or latest-end (project-start (task-project task))))))
+                 (dep-type (dependency-type dep))
+                 (lag (dependency-gap dep))
+                 (constraint-start nil))
+            (when target
+              ;; Calculate constraint start based on dependency type
+              (setf constraint-start
+                    (case dep-type
+                      ;; Finish-to-Start: start after predecessor finishes
+                      (:fs
+                       (let ((base (task-end target)))
+                         (if lag (date+ base lag) base)))
+
+                      ;; Start-to-Start: start when predecessor starts
+                      (:ss
+                       (let ((base (task-start target)))
+                         (if lag (date+ base lag) base)))
+
+                      ;; Finish-to-Finish: finish when predecessor finishes
+                      ;; Calculate start = predecessor-end + lag - our-duration
+                      (:ff
+                       (let* ((base (task-end target))
+                              (required-end (if lag (date+ base lag) base)))
+                         ;; Work backward from required end
+                         (date+ required-end (duration (- (duration-in-days task-dur)) :days))))
+
+                      ;; Start-to-Finish: finish when predecessor starts
+                      ;; Calculate start = predecessor-start + lag - our-duration
+                      (:sf
+                       (let* ((base (task-start target))
+                              (required-end (if lag (date+ base lag) base)))
+                         ;; Work backward from required end
+                         (date+ required-end (duration (- (duration-in-days task-dur)) :days))))
+
+                      ;; Default to FS behavior
+                      (t
+                       (let ((base (task-end target)))
+                         (if lag (date+ base lag) base)))))
+
+              ;; Track latest (most constraining) start date
+              (when constraint-start
+                (if (null latest-start)
+                    (setf latest-start constraint-start)
+                    (when (date> constraint-start latest-start)
+                      (setf latest-start constraint-start)))))))
+
+        (or latest-start (project-start (task-project task))))))
 
 (defun calculate-duration-from-effort (task)
-  "Calculate actual duration for an effort-based task considering resource efficiency.
+  "Calculate actual duration for an effort-based task considering resource efficiency
+   and allocation percentages.
 
-   Formula: duration = effort / total_efficiency
+   Formula: duration = effort / effective_efficiency
 
-   Where total_efficiency is the sum of efficiency values of all allocated resources.
-   If no resources are allocated, uses efficiency of 1.0 (treat effort as duration).
+   Where effective_efficiency is the sum of (efficiency × percent/100) for all allocated
+   resources. If a resource is allocated at 50%, it contributes half its efficiency.
 
    Examples:
-     - Task with 10 days effort, 1 resource at 1.0 efficiency => 10 days duration
-     - Task with 10 days effort, 1 resource at 2.0 efficiency => 5 days duration
-     - Task with 10 days effort, 2 resources at 1.0 efficiency => 5 days duration
+     - Task with 10 days effort, 1 resource at 1.0 efficiency, 100% => 10 days duration
+     - Task with 10 days effort, 1 resource at 2.0 efficiency, 100% => 5 days duration
+     - Task with 10 days effort, 1 resource at 1.0 efficiency, 50% => 20 days duration
      - Task with 10 days effort, no resources => 10 days duration (warning issued)"
   (let ((effort (task-effort task))
         (allocations (task-allocations task)))
@@ -120,11 +253,14 @@
           (warn "Task ~A has effort but no resource allocations - treating effort as duration"
                 (task-id task))
           effort)
-        ;; Calculate total efficiency from allocated resources
+        ;; Calculate total effective efficiency from allocated resources
         (let ((total-efficiency 0.0))
           (dolist (allocation allocations)
             (dolist (resource (allocation-resources allocation))
-              (incf total-efficiency (resource-efficiency resource))))
+              (let* ((efficiency (resource-efficiency resource))
+                     (percent (get-allocation-percent-for-resource allocation resource))
+                     (effective (/ (* efficiency percent) 100.0)))
+                (incf total-efficiency effective))))
 
           (if (zerop total-efficiency)
               (progn
@@ -141,7 +277,11 @@
 ;;; ============================================================================
 
 (defun topological-sort-tasks (project)
-  "Sort tasks in dependency order using depth-first search"
+  "Sort tasks in dependency order using depth-first search.
+
+   Ensures:
+   1. Dependencies are scheduled before dependents
+   2. Subtasks are scheduled before their parent tasks"
   (let ((sorted nil)
         (visited (make-hash-table :test 'eq))
         (in-progress (make-hash-table :test 'eq)))
@@ -160,14 +300,18 @@
                       (when target
                         (visit target))))
 
+                  ;; Visit all subtasks before the parent
+                  (dolist (subtask (task-subtasks task))
+                    (visit subtask))
+
                   ;; Mark as visited and add to sorted list
                   (setf (gethash task visited) t)
                   (setf (gethash task in-progress) nil)
                   (push task sorted)))))
 
-      ;; Visit all tasks
+      ;; Visit all tasks (starting with root tasks to get proper ordering)
       (loop for task being the hash-values of (project-tasks project)
             do (visit task))
 
-      ;; Return tasks in correct order (dependencies first)
+      ;; Return tasks in correct order (dependencies first, subtasks before parents)
       (nreverse sorted))))

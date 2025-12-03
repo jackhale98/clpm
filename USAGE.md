@@ -93,10 +93,33 @@ Create `~/my-projects/website-redesign.lisp`:
     :depends-on (design)
     :allocate (dev))
 
+  (deftask launch "Launch"
+    :milestone t
+    :depends-on (implement))
+
+  ;; Enhanced defreport DSL - define multiple report types
   (defreport summary "Summary"
     :type :task
     :format :html
-    :columns (:id :name :start :end :duration)))
+    :columns (:id :name :start :end :duration))
+
+  ;; Gantt chart report
+  (defreport timeline "Project Timeline"
+    :type :gantt
+    :format :html
+    :width 1000)
+
+  ;; Critical path report (auto-filters to slack=0)
+  (defreport critical "Critical Path"
+    :type :critical-path
+    :format :html
+    :columns (:name :start :end :slack))
+
+  ;; Milestone report
+  (defreport milestones "Milestones"
+    :type :milestone
+    :format :html
+    :columns (:name :start)))
 
 ;; Schedule and analyze
 (finalize-project *current-project*)
@@ -107,9 +130,12 @@ Create `~/my-projects/website-redesign.lisp`:
 (format t "Critical Path: ~A tasks~%"
         (length (critical-path *current-project*)))
 
-;; Save report (in current directory)
+;; Save reports
 (save-project-report *current-project* 'summary "website-report.html")
-(format t "Report saved to: website-report.html~%")
+(save-project-report *current-project* 'timeline "website-gantt.html")
+(save-project-report *current-project* 'critical "website-critical.html")
+(save-project-report *current-project* 'milestones "website-milestones.html")
+(format t "Reports saved!~%")
 ```
 
 ### Run From Anywhere
@@ -121,6 +147,134 @@ sbcl --script website-redesign.lisp
 
 # Or from any other directory
 sbcl --script ~/my-projects/website-redesign.lisp
+```
+
+## Enhanced Reporting DSL
+
+The `defreport` macro supports multiple report types for common project management needs. No more writing custom loops or maphash functions for common reports!
+
+### Report Types
+
+| Type | Description | Formats |
+|------|-------------|---------|
+| `:task` | Standard task report | :html, :csv |
+| `:resource` | Resource report | :html, :csv |
+| `:gantt` | Visual Gantt chart | :html, :svg, :json |
+| `:critical-path` | Auto-filtered to critical path tasks | :html, :csv |
+| `:milestone` | Auto-filtered to milestones only | :html, :csv |
+| `:evm` | Earned Value Management metrics | :html |
+| `:simulation` | Monte Carlo simulation results | :html |
+| `:risk` | Risk register | :html, :csv |
+
+### Auto-Filters
+
+For `:type :task` reports, use `:auto-filter` instead of writing lambda functions:
+
+| Filter | Description |
+|--------|-------------|
+| `:critical` | Tasks with zero slack |
+| `:scheduled` | Only scheduled tasks |
+| `:milestones` | Only milestone tasks |
+| `:incomplete` | Tasks < 100% complete |
+| `:high-priority` | Priority > 800 |
+| `:overdue` | Past end date and incomplete |
+
+### Examples
+
+```lisp
+;; Gantt chart as HTML with embedded SVG
+(defreport gantt "Project Timeline"
+  :type :gantt
+  :format :html
+  :width 1200
+  :height 600)
+
+;; Gantt chart as standalone SVG
+(defreport gantt-svg "Timeline SVG"
+  :type :gantt
+  :format :svg
+  :width 1000)
+
+;; Gantt data as JSON for external tools
+(defreport gantt-json "Timeline Data"
+  :type :gantt
+  :format :json)
+
+;; Critical path report (automatic filtering)
+(defreport critical "Critical Path"
+  :type :critical-path
+  :format :html
+  :columns (:name :start :end :slack))
+
+;; Milestone report
+(defreport milestones "Project Milestones"
+  :type :milestone
+  :format :html
+  :columns (:name :start))
+
+;; EVM status report
+(defreport evm "EVM Status"
+  :type :evm
+  :format :html
+  :columns (:name :pv :ev :sv)
+  :include-summary t)
+
+;; Monte Carlo simulation report
+(defreport simulation "Schedule Risk Analysis"
+  :type :simulation
+  :format :html
+  :trials 5000
+  :percentiles (10 50 75 90 95)
+  :include-histogram t)
+
+;; Risk register sorted by risk score
+(defreport risks "Risk Register"
+  :type :risk
+  :format :html
+  :columns (:name :probability :impact :score :severity)
+  :sort-by :score-desc)
+
+;; Open risks only
+(defreport open-risks "Active Risks"
+  :type :risk
+  :format :html
+  :filter-status :open)
+
+;; Using auto-filter instead of lambda
+(defreport high-priority "High Priority Tasks"
+  :type :task
+  :format :html
+  :columns (:name :start :end :priority)
+  :auto-filter :high-priority)
+
+;; Tasks on critical path using auto-filter
+(defreport critical-auto "Critical Tasks"
+  :type :task
+  :format :html
+  :columns (:name :slack)
+  :auto-filter :critical)
+
+;; Incomplete tasks
+(defreport incomplete "Incomplete Tasks"
+  :type :task
+  :format :html
+  :columns (:name :complete :end)
+  :auto-filter :incomplete)
+```
+
+### Generating Reports
+
+```lisp
+;; Generate and save a single report
+(save-project-report *current-project* 'gantt "output/gantt.html")
+
+;; Generate all reports defined in the project
+(generate-all-reports *current-project* "output/")
+
+;; Get report content as string (for further processing)
+(let ((html (generate-project-report *current-project* 'critical)))
+  ;; do something with html string
+  )
 ```
 
 ## Interactive Usage

@@ -2,9 +2,68 @@
 
 This directory contains example projects demonstrating various features of Project Juggler.
 
+## Enhanced Reporting DSL
+
+All examples now use the **enhanced defreport DSL** with powerful new report types:
+
+### New Report Types
+
+| Type | Description |
+|------|-------------|
+| `:gantt` | Visual Gantt chart (HTML, SVG, or JSON) |
+| `:critical-path` | Auto-filtered critical path tasks |
+| `:milestone` | Auto-filtered milestones only |
+| `:evm` | Earned Value Management metrics |
+| `:simulation` | Monte Carlo simulation results |
+| `:risk` | Risk register with filtering/sorting |
+
+### Auto-Filters (for `:type :task`)
+
+| Filter | Description |
+|--------|-------------|
+| `:critical` | Tasks with zero slack |
+| `:scheduled` | Only scheduled tasks |
+| `:milestones` | Only milestone tasks |
+| `:incomplete` | Tasks < 100% complete |
+| `:high-priority` | Priority > 800 |
+| `:overdue` | Past end date and incomplete |
+
+### Quick Examples
+
+```lisp
+;; Gantt chart as HTML with embedded SVG
+(defreport gantt "Project Timeline"
+  :type :gantt
+  :format :html
+  :width 1200)
+
+;; Critical path report (automatic filtering)
+(defreport critical "Critical Path"
+  :type :critical-path
+  :format :html
+  :columns (:name :start :end :slack))
+
+;; Monte Carlo simulation report
+(defreport simulation "Schedule Risk Analysis"
+  :type :simulation
+  :format :html
+  :trials 5000
+  :percentiles (10 50 75 90 95)
+  :include-histogram t)
+
+;; Risk register sorted by score
+(defreport risks "Risk Register"
+  :type :risk
+  :format :html
+  :columns (:name :probability :impact :score)
+  :sort-by :score-desc)
+```
+
+---
+
 ## Available Examples
 
-### 1. time-tracking-project.lisp - Mobile App with Calendar & Bookings ✨ NEW!
+### 1. time-tracking-project.lisp - Mobile App with Calendar & Bookings
 **Complexity:** Intermediate
 **Demonstrates:**
 - **Working time calendars** with holidays and weekends
@@ -46,19 +105,16 @@ sbcl --script examples/time-tracking-project.lisp
 - Critical path analysis (automatically calculated during scheduling)
 - Resource over-allocation detection
 - EVM baseline creation
-- **defreport DSL** for defining reports within the project
-- HTML and CSV report generation
+- **Enhanced defreport DSL** with new report types:
+  - `:type :critical-path` - automatic critical path filtering
+  - `:type :milestone` - milestone reports
+  - `:type :gantt` - visual Gantt charts (HTML, SVG, JSON)
+  - `:auto-filter :high-priority` - filter by priority
 
 **Run it:**
 ```bash
 cd /path/to/project-juggler
-sbcl
-```
-
-```lisp
-(push (truename ".") asdf:*central-registry*)
-(ql:quickload :project-juggler)
-(load "examples/simple-project.lisp")
+sbcl --script examples/simple-project.lisp
 ```
 
 **What you'll see:**
@@ -66,7 +122,7 @@ sbcl
 - Task schedule
 - Critical path (5 tasks on the critical path)
 - Resource allocation analysis
-- Generated reports in `examples/` directory
+- **7 generated reports** including Gantt charts
 
 ### 3. web-application.lisp - SaaS Platform Development
 **Complexity:** Advanced
@@ -78,25 +134,24 @@ sbcl
 - Milestones with multiple dependencies
 - Resource over-allocation in realistic scenarios
 - Complete project lifecycle (planning → deployment → support)
-- **defreport DSL** with 5 different reports (task summary, CSV export, critical path, high-priority tasks, resource utilization)
-- Filtering and sorting reports with lambda functions
+- **Enhanced defreport DSL** with 10 different report types:
+  - `:type :critical-path` - critical path tasks
+  - `:type :milestone` - project milestones
+  - `:type :gantt` - SVG and HTML Gantt charts
+  - `:type :evm` - Earned Value Management
+  - `:auto-filter :high-priority` - priority filtering
+  - `:auto-filter :incomplete` - incomplete tasks
 
 **Run it:**
 ```bash
 cd /path/to/project-juggler
-sbcl
-```
-
-```lisp
-(push (truename ".") asdf:*central-registry*)
-(ql:quickload :project-juggler)
-(load "examples/web-application.lisp")
+sbcl --script examples/web-application.lisp
 ```
 
 **What you'll see:**
 - Complex project with 36 tasks spanning 6.5 months
 - Multiple phases: requirements, design, development, testing, deployment, support
-- 5 generated reports demonstrating different defreport configurations
+- **10 generated reports** including Gantt charts, EVM, and milestones
 - Critical path analysis across the entire project
 
 ### 4. effort-scheduling.lisp - Effort-Based Scheduling Demo
@@ -130,6 +185,40 @@ sbcl
 - Comparison of how different resource efficiencies affect actual task duration
 - Examples of pair programming where multiple resources combine efficiencies
 - Real-world scenarios showing why senior developers complete work faster
+
+### 5. monte-carlo-example.lisp - Schedule Risk Analysis
+**Complexity:** Advanced
+**Demonstrates:**
+- PERT three-point estimation (optimistic, likely, pessimistic)
+- Monte Carlo simulation for schedule uncertainty
+- Risk register with probability and impact
+- Statistical analysis (percentiles, histograms, confidence intervals)
+- **Enhanced defreport DSL** with new simulation/risk types:
+  - `:type :simulation` - Monte Carlo analysis with percentiles
+  - `:type :risk` - Risk register reports with sorting/filtering
+  - `:type :critical-path` - Critical path analysis
+  - `:type :gantt` - Visual Gantt charts
+
+**Run it:**
+```bash
+cd /path/to/project-juggler
+sbcl --script examples/monte-carlo-example.lisp
+```
+
+**What you'll see:**
+- Individual task PERT analysis
+- 10,000-trial Monte Carlo simulation
+- Percentile analysis (P10, P50, P75, P90, P95)
+- Risk occurrence frequency analysis
+- Duration distribution histograms
+- Scheduling recommendations at different confidence levels
+- **5 generated reports** including simulation and risk registers
+
+**Key Concepts:**
+- `(deftask ... :estimate (:optimistic X :likely Y :pessimistic Z))` - PERT estimates
+- `(create-risk project id name :probability P :impact I ...)` - Risk registration
+- `(defreport ... :type :simulation :trials 5000 ...)` - Auto simulation reports
+- `(defreport ... :type :risk :sort-by :score-desc ...)` - Risk register reports
 
 ## How to Run Examples
 
@@ -212,13 +301,29 @@ After running an example, you'll find:
 - **`simple-project-report.html`** - Task summary HTML report
 - **`simple-project-tasks.csv`** - CSV export for Excel/Google Sheets
 - **`simple-project-critical.html`** - Critical path tasks only
+- **`simple-project-milestones.html`** - Project milestones
+- **`simple-project-gantt.html`** - Visual Gantt chart
+- **`simple-project-gantt.json`** - Gantt data for external tools
+- **`simple-project-priority.html`** - High priority tasks
 
 **web-application.lisp generates:**
 - **`web-application-report.html`** - Complete task summary
 - **`web-application-tasks.csv`** - CSV export with all tasks
 - **`web-application-critical.html`** - Critical path analysis
-- **`web-application-high-priority.html`** - High-priority tasks (priority > 900)
+- **`web-application-priority.html`** - High-priority tasks
 - **`web-application-resources.html`** - Resource utilization report
+- **`web-application-milestones.html`** - Project milestones
+- **`web-application-gantt.html`** - Visual Gantt chart (HTML)
+- **`web-application-gantt.svg`** - Gantt chart (SVG)
+- **`web-application-evm.html`** - EVM status report
+- **`web-application-incomplete.html`** - Incomplete tasks
+
+**monte-carlo-example.lisp generates:**
+- **`monte-carlo-simulation.html`** - Monte Carlo percentile analysis
+- **`monte-carlo-risks.html`** - Risk register sorted by score
+- **`monte-carlo-open-risks.html`** - Active risks only
+- **`monte-carlo-critical.html`** - Critical path tasks
+- **`monte-carlo-gantt.html`** - Visual Gantt chart
 
 **effort-scheduling.lisp generates:**
 - **`effort-scheduling-report.html`** - Shows actual vs estimated durations for effort-based tasks
@@ -306,12 +411,33 @@ After loading an example, try these commands:
     :depends-on (task1)
     :allocate (person1))
 
-  ;; Define reports using defreport DSL
+  (deftask milestone1 "Phase 1 Complete"
+    :milestone t
+    :depends-on (task2))
+
+  ;; Define reports using enhanced defreport DSL
   (defreport summary "Task Summary"
     :type :task
     :format :html
-    :columns (:id :name :start :end :duration)
-    :sort-by (lambda (a b) (date< (task-start a) (task-start b)))))
+    :columns (:id :name :start :end :duration))
+
+  ;; NEW: Critical path report (auto-filters to slack=0)
+  (defreport critical "Critical Path"
+    :type :critical-path
+    :format :html
+    :columns (:name :start :end :slack))
+
+  ;; NEW: Gantt chart
+  (defreport gantt "Project Timeline"
+    :type :gantt
+    :format :html
+    :width 1000)
+
+  ;; NEW: Milestones only
+  (defreport milestones "Milestones"
+    :type :milestone
+    :format :html
+    :columns (:name :start)))
 
 ;; Schedule and analyze
 (finalize-project *current-project*)
@@ -323,7 +449,10 @@ After loading an example, try these commands:
 
 ;; Generate reports
 (save-project-report *current-project* 'summary "my-project-summary.html")
-(format t "Report saved to my-project-summary.html~%")
+(save-project-report *current-project* 'critical "my-project-critical.html")
+(save-project-report *current-project* 'gantt "my-project-gantt.html")
+(save-project-report *current-project* 'milestones "my-project-milestones.html")
+(format t "Reports saved!~%")
 ```
 
 ## Troubleshooting

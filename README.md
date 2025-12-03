@@ -3,7 +3,7 @@
 **A modern, text-first project management system written in Common Lisp**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 481/481](https://img.shields.io/badge/tests-481%2F481%20passing-brightgreen)](tests/)
+[![Tests: 734/734](https://img.shields.io/badge/tests-734%2F734%20passing-brightgreen)](tests/)
 [![Common Lisp](https://img.shields.io/badge/language-Common%20Lisp-blue)](https://common-lisp.net/)
 
 Project Juggler is a TaskJuggler-inspired project management tool that brings powerful scheduling and tracking capabilities to Common Lisp. Define your projects in a clean, expressive DSL, schedule them with industry-standard algorithms, and track progress with Earned Value Management.
@@ -35,7 +35,8 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
 - **Namespace System** - Organize large projects into modular components
 - **Comprehensive Validation** - Circular dependency detection, constraint checking
 - **Type Safety** - Rich temporal types (dates, durations, intervals)
-- **100% Test Coverage** - 481 tests ensure reliability
+- **Monte Carlo Simulation** - Quantitative schedule risk analysis with PERT
+- **100% Test Coverage** - 734 tests ensure reliability
 
 ## 📦 Installation
 
@@ -102,7 +103,7 @@ If you see "✓ Project Juggler loaded successfully!" - you're ready to go!
 # Run all tests
 sbcl --script run-tests.lisp
 
-# Expected output: 481/481 tests passing
+# Expected output: 734/734 tests passing
 ```
 
 ## 🚀 Quick Example
@@ -566,6 +567,36 @@ For ad-hoc reports, create them directly:
 (redo)
 ```
 
+### Monte Carlo Simulation
+
+Quantify schedule uncertainty with PERT three-point estimates and Monte Carlo simulation:
+
+```lisp
+;; Define tasks with PERT estimates (optimistic, likely, pessimistic)
+(deftask development "Development"
+  :estimate (:optimistic (duration 10 :days)
+             :likely (duration 15 :days)
+             :pessimistic (duration 30 :days))
+  :allocate (developer))
+
+;; Run Monte Carlo simulation
+(let ((results (run-monte-carlo-simulation *current-project* :trials 10000)))
+  ;; Get percentile analysis
+  (format t "P50 (median): ~,1F days~%" (simulation-percentile results 50))
+  (format t "P90 (conservative): ~,1F days~%" (simulation-percentile results 90))
+
+  ;; Probability of meeting deadline
+  (format t "Chance of finishing in 60 days: ~,1F%~%"
+          (* 100 (simulation-probability-of-completion results 60))))
+
+;; Run simulation with risk events
+(let ((results (run-risk-simulation *current-project* :trials 10000)))
+  ;; See how risks impact the schedule
+  (simulation-summary results))
+```
+
+**See [SIMULATION.md](SIMULATION.md) for complete Monte Carlo documentation.**
+
 ## 🏗️ Architecture
 
 ### Design Principles
@@ -575,7 +606,7 @@ For ad-hoc reports, create them directly:
 3. **Immutable Baselines**: Project snapshots for reliable EVM tracking
 4. **Type Safety**: Rich temporal types prevent common errors
 5. **Calendar-Aware**: Working time calendars for realistic scheduling
-6. **Test-Driven**: 481 tests ensure correctness
+6. **Test-Driven**: 734 tests ensure correctness
 
 ### Key Components
 
@@ -589,8 +620,9 @@ project-juggler/
 │   ├── scheduling/     # TaskJuggler + CPM + calendars
 │   ├── session/        # Save/load, undo/redo
 │   ├── tracking/       # EVM, baselines, bookings
-│   └── reporting/      # HTML, CSV, Gantt
-└── tests/              # 481 comprehensive tests
+│   ├── reporting/      # HTML, CSV, Gantt
+│   └── risk/           # Risk register, Monte Carlo simulation
+└── tests/              # 734 comprehensive tests
 ```
 
 ## 📚 Examples
@@ -603,6 +635,7 @@ The [`examples/`](examples/) directory contains demonstration projects:
 - **simple-project.lisp** - Website redesign (6 tasks, demonstrates basics)
 - **web-application.lisp** - Complex SaaS platform (40+ tasks, multiple teams)
 - **effort-scheduling.lisp** - Effort-based scheduling with resource efficiency
+- **monte-carlo-example.lisp** - Schedule risk analysis with PERT simulation
 
 Run from repository root: `sbcl --script examples/simple-project.lisp`
 
@@ -661,12 +694,11 @@ Core implementation is complete! Recent additions:
 
 - [x] ~~Calendar integration (working hours, holidays)~~ ✅ **Done!**
 - [x] ~~Actual time tracking with bookings~~ ✅ **Done!**
+- [x] ~~Monte Carlo simulation for risk analysis~~ ✅ **Done!**
 
 Future enhancements:
 
 - [ ] Resource leveling algorithms
-- [ ] Scenario-based what-if analysis
-- [ ] Monte Carlo simulation for risk analysis
 - [ ] Gantt chart rendering (HTML5 Canvas/SVG)
 - [ ] Web-based UI
 - [ ] Import/export TaskJuggler format

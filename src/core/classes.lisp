@@ -15,7 +15,11 @@
    (scenarios :initform nil :accessor project-scenarios)
    (current-scenario :initform :plan :accessor project-current-scenario)
    (baseline :initform nil :accessor project-baseline)
-   (reports :initform (make-hash-table :test 'eq) :accessor project-reports))
+   (reports :initform (make-hash-table :test 'eq) :accessor project-reports)
+   ;; Cost tracking
+   (budget :initarg :budget :initform nil :accessor project-budget)
+   ;; Risk register
+   (risk-register :initform nil :accessor project-risk-register))
   (:documentation "A project"))
 
 (defun project-p (obj)
@@ -49,7 +53,16 @@
    (late-finish :initform nil :accessor task-late-finish)
    (slack :initform nil :accessor task-slack)
    ;; Bookings (actual time tracking)
-   (bookings :initform nil :accessor task-bookings))
+   (bookings :initform nil :accessor task-bookings)
+   ;; Cost tracking
+   (fixed-cost :initarg :fixed-cost :initform 0.0 :accessor task-fixed-cost)
+   ;; PERT estimation
+   (estimate :initarg :estimate :initform nil :accessor task-estimate)
+   ;; Constraints
+   (start-constraint :initarg :start-constraint :initform nil :accessor task-start-constraint)
+   (finish-constraint :initarg :finish-constraint :initform nil :accessor task-finish-constraint)
+   ;; Recurring task definition
+   (recurring :initarg :recurring :initform nil :accessor task-recurring))
   (:documentation "A task"))
 
 (defun task-p (obj)
@@ -68,7 +81,12 @@
    (allocated-effort :initform 0.0 :accessor resource-allocated-effort)
    (available-effort :initform 0.0 :accessor resource-available-effort)
    ;; Bookings (actual time tracking)
-   (bookings :initform nil :accessor resource-bookings))
+   (bookings :initform nil :accessor resource-bookings)
+   ;; Availability
+   (leaves :initarg :leaves :initform nil :accessor resource-leaves)
+   (daily-limit :initarg :daily-limit :initform nil :accessor resource-daily-limit)
+   (weekly-limit :initarg :weekly-limit :initform nil :accessor resource-weekly-limit)
+   (resource-calendar :initarg :calendar :initform nil :accessor resource-calendar))
   (:documentation "A resource"))
 
 (defun resource-p (obj)
@@ -91,8 +109,41 @@
   ((task :initarg :task :reader allocation-task)
    (resource-refs :initarg :resource-refs :reader allocation-resource-refs)
    (resources :initarg :resources :initform nil :accessor allocation-resources)
-   (mandatory :initarg :mandatory :initform nil :reader allocation-mandatory-p))
+   (mandatory :initarg :mandatory :initform nil :reader allocation-mandatory-p)
+   ;; Resource percentages: alist of (resource-ref . percent)
+   (resource-percents :initarg :resource-percents :initform nil :accessor allocation-resource-percents)
+   ;; Default percent for simple allocations
+   (percent :initarg :percent :initform 100 :accessor allocation-percent))
   (:documentation "Resource allocation to task"))
+
+(defclass leave ()
+  ((type :initarg :type :reader leave-type)
+   (start :initarg :start :reader leave-start)
+   (end :initarg :end :reader leave-end)
+   (description :initarg :description :initform nil :reader leave-description))
+  (:documentation "Resource leave/unavailability period"))
+
+(defun leave-p (obj)
+  "Check if object is a leave"
+  (typep obj 'leave))
+
+(defclass leave-conflict ()
+  ((resource :initarg :resource :reader conflict-resource)
+   (leave :initarg :leave :reader conflict-leave)
+   (task :initarg :task :reader conflict-task)
+   (overlap-start :initarg :overlap-start :reader conflict-overlap-start)
+   (overlap-end :initarg :overlap-end :reader conflict-overlap-end))
+  (:documentation "Conflict between task schedule and resource leave"))
+
+(defclass pert-estimate ()
+  ((optimistic :initarg :optimistic :reader estimate-optimistic)
+   (likely :initarg :likely :accessor estimate-likely)
+   (pessimistic :initarg :pessimistic :reader estimate-pessimistic))
+  (:documentation "PERT three-point estimate for task duration"))
+
+(defun pert-estimate-p (obj)
+  "Check if object is a PERT estimate"
+  (typep obj 'pert-estimate))
 
 (defun allocation-p (obj)
   "Check if object is an allocation"
@@ -127,10 +178,7 @@
    (amount :initarg :amount :reader booking-amount))
   (:documentation "Actual work booking"))
 
-(defclass working-hours ()
-  ((days :initarg :days :reader working-hours-days)
-   (hours :initarg :hours :reader working-hours-hours))
-  (:documentation "Working hours specification"))
+;; Note: working-hours class is defined in scheduling/calendars.lisp
 
 (defclass calendar ()
   ((id :initarg :id :reader calendar-id)
@@ -176,3 +224,45 @@
    (date :initarg :date :reader overallocation-date)
    (load :initarg :load :reader overallocation-load))
   (:documentation "Resource over-allocation information"))
+
+;;; ============================================================================
+;;; Task Constraint Classes
+;;; ============================================================================
+
+(defclass task-constraint ()
+  ((type :initarg :type :reader constraint-type
+         :documentation "Constraint type: :snet, :snlt, :fnet, :fnlt, :mso, :mfo")
+   (date :initarg :date :reader constraint-date
+         :documentation "The date for the constraint"))
+  (:documentation "A date constraint on a task"))
+
+(defun task-constraint-p (obj)
+  "Check if object is a task constraint."
+  (typep obj 'task-constraint))
+
+(defun make-task-constraint (type date)
+  "Create a task constraint."
+  (make-instance 'task-constraint :type type :date date))
+
+;;; ============================================================================
+;;; Recurring Task Classes
+;;; ============================================================================
+
+(defclass recurring-definition ()
+  ((frequency :initarg :frequency :reader recurring-frequency
+              :documentation "Frequency: :daily, :weekly, :workdays, :monthly, :days")
+   (start-date :initarg :start-date :reader recurring-start-date
+               :documentation "Start date for recurrence")
+   (end-date :initarg :end-date :reader recurring-end-date
+             :documentation "End date for recurrence")
+   (day :initarg :day :initform nil :reader recurring-day
+        :documentation "Day of week (for :weekly) or day of month (for :monthly)")
+   (days :initarg :days :initform nil :reader recurring-days
+         :documentation "List of days (for :days frequency)")
+   (exceptions :initarg :exceptions :initform nil :accessor recurring-exceptions
+               :documentation "List of exception dates to skip"))
+  (:documentation "Definition of a recurring task pattern"))
+
+(defun recurring-definition-p (obj)
+  "Check if object is a recurring definition."
+  (typep obj 'recurring-definition))

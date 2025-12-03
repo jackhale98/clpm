@@ -56,30 +56,43 @@
 (defun backward-pass (project)
   "Calculate Late Start and Late Finish for all tasks.
 
-   LF = min(LS of all successors), or project end for final tasks
-   LS = LF - duration"
+   LF = min(LS of all successors), or project completion date for final tasks
+   LS = LF - duration
 
-  ;; Get tasks in reverse dependency order
-  (let ((sorted-tasks (reverse (topological-sort-tasks project))))
+   For CPM, we use the latest Early Finish among all tasks as the reference
+   point for the backward pass. This ensures the longest path has zero slack."
 
-    ;; Calculate LS and LF for each task in reverse order
-    (dolist (task sorted-tasks)
-      (calculate-late-dates task project))))
+  ;; Find the latest Early Finish among all tasks (project completion point)
+  (let ((project-completion-date nil))
+    (loop for task being the hash-values of (project-tasks project)
+          for ef = (task-early-finish task)
+          when ef
+          do (if (null project-completion-date)
+                 (setf project-completion-date ef)
+                 (when (date> ef project-completion-date)
+                   (setf project-completion-date ef))))
 
-(defun calculate-late-dates (task project)
+    ;; Get tasks in reverse dependency order
+    (let ((sorted-tasks (reverse (topological-sort-tasks project))))
+
+      ;; Calculate LS and LF for each task in reverse order
+      (dolist (task sorted-tasks)
+        (calculate-late-dates task project project-completion-date)))))
+
+(defun calculate-late-dates (task project project-completion-date)
   "Calculate Late Start and Late Finish for a single task"
-  (let* ((late-finish (calculate-late-finish-date task project))
+  (let* ((late-finish (calculate-late-finish-date task project project-completion-date))
          (duration-days (date-difference-days (task-end task) (task-start task)))
          (late-start (date- late-finish (duration duration-days :days))))
     (setf (task-late-finish task) late-finish)
     (setf (task-late-start task) late-start)))
 
-(defun calculate-late-finish-date (task project)
+(defun calculate-late-finish-date (task project project-completion-date)
   "Calculate Late Finish date based on successors"
   (let ((successors (find-task-successors task project)))
     (if (null successors)
-        ;; No successors: LF = EF (task is on critical path ending)
-        (task-early-finish task)
+        ;; No successors: LF = project completion date (latest EF among all tasks)
+        project-completion-date
         ;; Has successors: LF = min(LS of all successors)
         (let ((earliest-start nil))
           (dolist (successor successors)
@@ -89,7 +102,7 @@
                     (setf earliest-start succ-ls)
                     (when (date< succ-ls earliest-start)
                       (setf earliest-start succ-ls))))))
-          (or earliest-start (task-early-finish task))))))
+          (or earliest-start project-completion-date)))))
 
 (defun find-task-successors (task project)
   "Find all tasks that depend on this task"

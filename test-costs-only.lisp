@@ -1,0 +1,12 @@
+;;;; Test cost tracking only
+(require :asdf)
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname))))
+  (when (probe-file quicklisp-init) (load quicklisp-init)))
+(push (truename ".") asdf:*central-registry*)
+(asdf:load-system "project-juggler" :verbose nil)
+(ql:quickload :fiveam :silent t)
+(load "tests/test-package.lisp")
+(load "tests/test-utils.lisp")
+(load "tests/tracking/test-costs.lisp")
+(format t "~%Running cost tracking tests...~%")
+(fiveam:run! 'project-juggler-tests::cost-tracking-suite)

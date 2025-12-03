@@ -272,7 +272,14 @@
     (finalize-project *current-project*)
     (schedule *current-project*)
 
-    (let ((load (calculate-resource-load (gethash 'dev1 (project-resources *current-project*))
-                                         (date 2024 3 3))))
-      (is (numberp load))
-      (is (> load 0)))))
+    ;; Calculate load for the full task duration
+    (let ((load-data (calculate-resource-load
+                      (gethash 'dev1 (project-resources *current-project*))
+                      *current-project*
+                      (date 2024 3 1)
+                      (date 2024 3 5))))
+      (is (listp load-data))
+      (is (> (length load-data) 0))
+      ;; Each day should show 1.0 load (100% allocated)
+      (dolist (day-load load-data)
+        (is (= 1.0 (cdr day-load)))))))
