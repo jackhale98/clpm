@@ -207,7 +207,7 @@
                 (incf (gethash task-id task-durations) impact)))))))
 
     ;; Schedule tasks in dependency order
-    (let ((sorted-tasks (topological-sort-tasks project)))
+    (let ((sorted-tasks (simulation-topological-sort-tasks project)))
       (dolist (task sorted-tasks)
         (let* ((task-id (task-id task))
                (dur-days (or (gethash task-id task-durations) 0.0))
@@ -250,8 +250,10 @@
           (setf earliest pred-end))))
     earliest))
 
-(defun topological-sort-tasks (project)
-  "Sort tasks in dependency order for simulation."
+(defun simulation-topological-sort-tasks (project)
+  "Sort tasks in dependency order for simulation.
+   This is a simplified version that doesn't handle subtask hierarchy,
+   suitable for Monte Carlo simulation where we only care about dependencies."
   (let ((sorted nil)
         (visited (make-hash-table :test 'eq)))
     (labels ((visit (task)

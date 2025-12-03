@@ -158,6 +158,37 @@
     (make-task-constraint ctype cdate)))
 
 ;;; ============================================================================
+;;; Scenario-Specific Property Parsing (TaskJuggler-style)
+;;; ============================================================================
+
+(defun parse-scenario-keyword (keyword)
+  "Parse a keyword that might be scenario-specific.
+   Returns (scenario-id property) or (nil property) if not scenario-specific.
+
+   Uses / as separator since : has special meaning in Lisp.
+
+   Examples:
+     :effort             -> (nil :effort)
+     :delayed/effort     -> (delayed :effort)
+     :plan/duration      -> (plan :duration)
+
+   Supported properties: effort, duration, start, end, complete"
+  (let* ((keyword-name (symbol-name keyword))
+         (slash-pos (position #\/ keyword-name)))
+    (if slash-pos
+        ;; Has a slash - split into scenario/property
+        (let ((scenario-str (subseq keyword-name 0 slash-pos))
+              (property-str (subseq keyword-name (1+ slash-pos))))
+          (list (intern scenario-str)
+                (intern property-str :keyword)))
+        ;; No slash - regular property
+        (list nil keyword))))
+
+(defun scenario-property-p (keyword)
+  "Check if keyword is a scenario-specific property (has / in name)."
+  (position #\/ (symbol-name keyword)))
+
+;;; ============================================================================
 ;;; Recurring Specification Parsing
 ;;; ============================================================================
 
@@ -221,6 +252,10 @@
      :depends-on ((task0 :lag (duration 2 :days))) ; FS with 2-day lag
      :depends-on ((task0 :type :ss :lag (duration -1 :days)))  ; SS with 1-day lead
 
+   TaskJuggler-style scenario-specific values (use / separator):
+     :delayed/effort (duration 50 :hours)   ; Different effort for 'delayed' scenario
+     :plan/duration (duration 5 :days)      ; Duration for 'plan' scenario
+
    Keywords:
      :effort      - Effort duration
      :duration    - Calendar duration
@@ -255,28 +290,40 @@
         (start-constraint-expr nil)
         (finish-constraint-expr nil)
         (recurring-expr nil)
+        ;; TaskJuggler-style: scenario-specific values
+        ;; List of (scenario-id property value-expr)
+        (scenario-values nil)
         (forms nil)
         (remaining body))
 
     (loop while (and remaining (keywordp (first remaining)))
           do (let ((keyword (first remaining))
                    (value (second remaining)))
-               (case keyword
-                 (:effort (setf effort-expr value))
-                 (:duration (setf duration-expr value))
-                 (:start (setf start-expr value))
-                 (:end (setf end-expr value))
-                 (:priority (setf priority-expr value))
-                 (:milestone (setf milestone-expr value))
-                 (:complete (setf complete-expr value))
-                 (:fixed-cost (setf fixed-cost-expr value))
-                 (:depends-on (setf depends-on-list value))
-                 (:allocate (setf allocate-list value))
-                 (:estimate (setf estimate-expr value))
-                 (:start-constraint (setf start-constraint-expr value))
-                 (:finish-constraint (setf finish-constraint-expr value))
-                 (:recurring (setf recurring-expr value))
-                 (t (warn "Unknown keyword in deftask: ~A" keyword)))
+               ;; Check if it's a scenario-specific property
+               (if (scenario-property-p keyword)
+                   ;; Parse scenario:property format
+                   (let ((parsed (parse-scenario-keyword keyword)))
+                     (push (list (first parsed)   ; scenario-id
+                                 (second parsed)  ; property keyword
+                                 value)           ; value expression
+                           scenario-values))
+                   ;; Regular keyword
+                   (case keyword
+                     (:effort (setf effort-expr value))
+                     (:duration (setf duration-expr value))
+                     (:start (setf start-expr value))
+                     (:end (setf end-expr value))
+                     (:priority (setf priority-expr value))
+                     (:milestone (setf milestone-expr value))
+                     (:complete (setf complete-expr value))
+                     (:fixed-cost (setf fixed-cost-expr value))
+                     (:depends-on (setf depends-on-list value))
+                     (:allocate (setf allocate-list value))
+                     (:estimate (setf estimate-expr value))
+                     (:start-constraint (setf start-constraint-expr value))
+                     (:finish-constraint (setf finish-constraint-expr value))
+                     (:recurring (setf recurring-expr value))
+                     (t (warn "Unknown keyword in deftask: ~A" keyword))))
                (setf remaining (cddr remaining))))
 
     ;; Remaining elements are body forms
@@ -334,6 +381,17 @@
                                          :resource-refs resource-refs
                                          :resource-percents resource-percents)))
                (push alloc (task-allocations task)))))
+
+       ;; Store scenario-specific values (TaskJuggler-style)
+       ,@(when scenario-values
+           (mapcar (lambda (sv)
+                     (let ((scenario-id (first sv))
+                           (property (second sv))
+                           (value-expr (third sv)))
+                       `(let ((current-plist (gethash ',scenario-id (task-scenario-values task))))
+                          (setf (gethash ',scenario-id (task-scenario-values task))
+                                (list* ,property ,value-expr current-plist)))))
+                   scenario-values))
 
        ;; Execute body with this task as current
        (let ((*current-task* task))

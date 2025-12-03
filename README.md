@@ -3,7 +3,7 @@
 **A modern, text-first project management system written in Common Lisp**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 734/734](https://img.shields.io/badge/tests-734%2F734%20passing-brightgreen)](tests/)
+[![Tests: 1107/1107](https://img.shields.io/badge/tests-1107%2F1107%20passing-brightgreen)](tests/)
 [![Common Lisp](https://img.shields.io/badge/language-Common%20Lisp-blue)](https://common-lisp.net/)
 
 Project Juggler is a TaskJuggler-inspired project management tool that brings powerful scheduling and tracking capabilities to Common Lisp. Define your projects in a clean, expressive DSL, schedule them with industry-standard algorithms, and track progress with Earned Value Management.
@@ -27,7 +27,7 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
 - **HTML Reports** - Professional, styled HTML output with task and resource views
 - **CSV Export** - RFC 4180 compliant CSV for spreadsheet integration
 - **Gantt Chart Data** - Structured data ready for visualization
-- **Baseline Comparison** - Snapshot and compare project states over time
+- **Scenario Comparison** - TaskJuggler-style scenarios for what-if analysis
 - **Critical Path Analysis** - Automatically calculated during scheduling
 
 ### 🔧 Developer Features
@@ -36,7 +36,7 @@ Project Juggler is a TaskJuggler-inspired project management tool that brings po
 - **Comprehensive Validation** - Circular dependency detection, constraint checking
 - **Type Safety** - Rich temporal types (dates, durations, intervals)
 - **Monte Carlo Simulation** - Quantitative schedule risk analysis with PERT
-- **100% Test Coverage** - 734 tests ensure reliability
+- **100% Test Coverage** - 1107 tests ensure reliability
 
 ## 📦 Installation
 
@@ -103,7 +103,7 @@ If you see "✓ Project Juggler loaded successfully!" - you're ready to go!
 # Run all tests
 sbcl --script run-tests.lisp
 
-# Expected output: 734/734 tests passing
+# Expected output: 1107/1107 tests passing
 ```
 
 ## 🚀 Quick Example
@@ -331,27 +331,41 @@ Dependencies default to "finish-start" (task2 starts after task1 finishes).
 
 ### Earned Value Management (EVM)
 
-Track project performance against baseline:
+Track project performance using scenarios (first scenario is the baseline):
 
 ```lisp
-;; Create baseline snapshot
-(let ((baseline (create-baseline *current-project* :name "Initial Plan")))
-  (set-project-baseline *current-project* baseline))
+;; Define project with scenarios - first scenario is the baseline
+(defproject my-project "My Project"
+  :start (date 2024 3 1)
+  :end (date 2024 6 30)
+  :scenarios (plan delayed)  ; 'plan' is the baseline
+
+  (deftask task1 "Task 1"
+    :duration (duration 10 :days)
+    :delayed/duration (duration 15 :days)))  ; Different value for delayed scenario
+
+;; Finalize and schedule
+(finalize-project *current-project*)
+(schedule *current-project*)
 
 ;; Update task completion
 (setf (task-complete (gethash 'task1 (project-tasks *current-project*))) 50)
 
-;; Calculate EVM metrics
-(let ((pv (calculate-planned-value *current-project* (local-time:now)))
+;; Calculate EVM metrics (uses baseline scenario automatically)
+(let ((pv (calculate-planned-value *current-project* (date 2024 4 1)))
       (ev (calculate-earned-value *current-project*))
-      (sv (calculate-schedule-variance *current-project* (local-time:now)))
-      (spi (calculate-spi *current-project* (local-time:now))))
+      (sv (calculate-schedule-variance *current-project* (date 2024 4 1)))
+      (spi (calculate-spi *current-project* (date 2024 4 1))))
   (format t "Planned Value: ~A%~%" pv)
   (format t "Earned Value: ~A%~%" ev)
   (format t "Schedule Variance: ~A%~%" sv)
   (format t "Schedule Performance Index: ~A~%" spi)
   (when (< spi 1.0)
     (format t "Project is behind schedule!~%")))
+
+;; Compare scenarios
+(compare-scenarios *current-project* 'plan 'delayed)
+;; => (:duration-1 10 :duration-2 15 ...)
 ```
 
 **EVM Metrics:**
@@ -595,7 +609,7 @@ Quantify schedule uncertainty with PERT three-point estimates and Monte Carlo si
   (simulation-summary results))
 ```
 
-**See [SIMULATION.md](SIMULATION.md) for complete Monte Carlo documentation.**
+**See the `examples/monte-carlo-example.lisp` file for complete Monte Carlo usage examples.**
 
 ## 🏗️ Architecture
 
@@ -603,10 +617,10 @@ Quantify schedule uncertainty with PERT three-point estimates and Monte Carlo si
 
 1. **Text-First**: Projects defined in human-readable Lisp DSL
 2. **Separation of Concerns**: Heuristic scheduling separate from CPM analysis
-3. **Immutable Baselines**: Project snapshots for reliable EVM tracking
+3. **Scenario-Based EVM**: First scenario is baseline for tracking
 4. **Type Safety**: Rich temporal types prevent common errors
 5. **Calendar-Aware**: Working time calendars for realistic scheduling
-6. **Test-Driven**: 734 tests ensure correctness
+6. **Test-Driven**: 1107 tests ensure correctness
 
 ### Key Components
 
@@ -619,10 +633,10 @@ project-juggler/
 │   ├── validation/     # Constraint checking
 │   ├── scheduling/     # TaskJuggler + CPM + calendars
 │   ├── session/        # Save/load, undo/redo
-│   ├── tracking/       # EVM, baselines, bookings
+│   ├── tracking/       # EVM, scenarios, bookings
 │   ├── reporting/      # HTML, CSV, Gantt
 │   └── risk/           # Risk register, Monte Carlo simulation
-└── tests/              # 734 comprehensive tests
+└── tests/              # 1107 comprehensive tests
 ```
 
 ## 📚 Examples
@@ -632,8 +646,8 @@ project-juggler/
 The [`examples/`](examples/) directory contains demonstration projects:
 
 - **time-tracking-project.lisp** - Calendars + bookings + EVM integration
-- **simple-project.lisp** - Website redesign (6 tasks, demonstrates basics)
-- **web-application.lisp** - Complex SaaS platform (40+ tasks, multiple teams)
+- **simple-project.lisp** - Website redesign with scenarios (6 tasks, demonstrates basics)
+- **web-application.lisp** - Complex SaaS platform with scenarios (40+ tasks, multiple teams)
 - **effort-scheduling.lisp** - Effort-based scheduling with resource efficiency
 - **monte-carlo-example.lisp** - Schedule risk analysis with PERT simulation
 

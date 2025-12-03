@@ -7,7 +7,8 @@
 ;;;; - Resource allocation
 ;;;; - Milestones
 ;;;; - Critical path analysis
-;;;; - EVM tracking
+;;;; - TaskJuggler-style scenarios for what-if analysis
+;;;; - EVM tracking (uses first scenario as baseline)
 
 ;;; Load the project-juggler system
 (require :asdf)
@@ -31,6 +32,7 @@
 (defproject web-app "SaaS Platform Development"
   :start (date 2024 3 1)
   :end (date 2024 9 30)
+  :scenarios (plan delayed)  ; First scenario is baseline for EVM
 
   ;;; ---------------------------------------------------------------------------
   ;;; RESOURCES
@@ -448,16 +450,15 @@
             (format t "  ... and ~A more~%" (- (length overallocations) display-count))))
         (format t "~%"))))
 
-;; Create baseline for EVM tracking
+;; Scenario comparison using TaskJuggler-style API
 (format t "─────────────────────────────────────────────────────────────────~%")
-(format t "BASELINE CREATION~%")
+(format t "SCENARIO SYSTEM (TaskJuggler-style)~%")
 (format t "─────────────────────────────────────────────────────────────────~%")
 
-(let ((baseline (create-baseline *current-project* :name "Initial Project Plan")))
-  (set-project-baseline *current-project* baseline)
-  (format t "✓ Baseline created: ~A~%" (baseline-name baseline))
-  (format t "  Date: ~A~%" (baseline-date baseline))
-  (format t "  Tasks: ~A~%~%" (hash-table-count (baseline-tasks baseline))))
+;; First scenario ('plan) is automatically the baseline for EVM
+(format t "✓ Scenarios defined: ~A~%" (list-scenarios *current-project*))
+(format t "  Baseline scenario (first): ~A~%" (baseline-scenario-id *current-project*))
+(format t "  EVM calculations will use the baseline scenario~%~%")
 
 ;; Generate reports using enhanced DSL-defined reports
 (format t "─────────────────────────────────────────────────────────────────~%")
@@ -519,10 +520,16 @@
 (format t "(setf (task-complete (gethash 'requirements~%")
 (format t "                      (project-tasks *current-project*))) 100)~%~%")
 
-(format t ";; Calculate EVM metrics~%")
-(format t "(let ((pv (calculate-planned-value *current-project* (local-time:now)))~%")
+(format t ";; Calculate EVM metrics (uses first scenario as baseline)~%")
+(format t "(let ((pv (calculate-planned-value *current-project* (date 2024 4 1)))~%")
 (format t "      (ev (calculate-earned-value *current-project*))~%")
-(format t "      (spi (calculate-spi *current-project* (local-time:now))))~%")
+(format t "      (spi (calculate-spi *current-project* (date 2024 4 1))))~%")
 (format t "  (format t \"PV: ~~~~A%%, EV: ~~~~A%%, SPI: ~~~~,2F~~~~%%\" pv ev spi))~%~%")
+
+(format t ";; Compare scenarios~%")
+(format t "(compare-scenarios *current-project* 'plan 'delayed)~%~%")
+
+(format t ";; Get scenario summary~%")
+(format t "(scenario-summary *current-project* 'plan)~%~%")
 
 (format t "═══════════════════════════════════════════════════════════════════~%~%")

@@ -19,7 +19,9 @@
    ;; Cost tracking
    (budget :initarg :budget :initform nil :accessor project-budget)
    ;; Risk register
-   (risk-register :initform nil :accessor project-risk-register))
+   (risk-register :initform nil :accessor project-risk-register)
+   ;; Primary baseline name (TaskJuggler-style)
+   (primary-baseline :initform nil :accessor project-primary-baseline))
   (:documentation "A project"))
 
 (defun project-p (obj)
@@ -34,6 +36,7 @@
    (subtasks :initform nil :accessor task-subtasks)
    (dependencies :initform nil :accessor task-dependencies)
    (allocations :initform nil :accessor task-allocations)
+   ;; Base values (used for default/plan scenario)
    (effort :initarg :effort :initform nil :accessor task-effort)
    (duration :initarg :duration :initform nil :accessor task-duration)
    (start :initarg :start :initform nil :accessor task-start)
@@ -43,6 +46,9 @@
    (complete :initarg :complete :initform 0 :accessor task-complete)
    (index :initarg :index :initform 0 :accessor task-index)
    (scheduled :initform nil :accessor task-scheduled-p)
+   ;; Scenario-specific values: scenario-id -> plist of (:effort :duration :start :end :complete)
+   ;; TaskJuggler-style: task stores different values per scenario
+   (scenario-values :initform (make-hash-table :test 'eq) :accessor task-scenario-values)
    ;; TaskJuggler heuristic criticalness (for scheduling priority)
    (criticalness :initform 0.0 :accessor task-criticalness)
    (path-criticalness :initform 0.0 :accessor task-path-criticalness)
@@ -68,6 +74,61 @@
 (defun task-p (obj)
   "Check if object is a task"
   (typep obj 'task))
+
+;;; TaskJuggler-style scenario value accessors
+;;; These get/set values for a specific scenario, falling back to base values
+
+(defun task-value-for-scenario (task property scenario-id)
+  "Get a task property value for a specific scenario.
+   Falls back to base value if scenario doesn't override it."
+  (let ((scenario-plist (gethash scenario-id (task-scenario-values task))))
+    (if scenario-plist
+        (let ((val (getf scenario-plist property :not-found)))
+          (if (eq val :not-found)
+              ;; Fall back to base value
+              (ecase property
+                (:effort (task-effort task))
+                (:duration (task-duration task))
+                (:start (task-start task))
+                (:end (task-end task))
+                (:complete (task-complete task)))
+              val))
+        ;; No scenario override, use base value
+        (ecase property
+          (:effort (task-effort task))
+          (:duration (task-duration task))
+          (:start (task-start task))
+          (:end (task-end task))
+          (:complete (task-complete task))))))
+
+(defun (setf task-value-for-scenario) (value task property scenario-id)
+  "Set a task property value for a specific scenario."
+  (let ((scenario-plist (gethash scenario-id (task-scenario-values task))))
+    (if scenario-plist
+        (setf (getf (gethash scenario-id (task-scenario-values task)) property) value)
+        (setf (gethash scenario-id (task-scenario-values task))
+              (list property value))))
+  value)
+
+(defun task-effort-for-scenario (task scenario-id)
+  "Get task effort for a specific scenario."
+  (task-value-for-scenario task :effort scenario-id))
+
+(defun task-duration-for-scenario (task scenario-id)
+  "Get task duration for a specific scenario."
+  (task-value-for-scenario task :duration scenario-id))
+
+(defun task-start-for-scenario (task scenario-id)
+  "Get task start for a specific scenario."
+  (task-value-for-scenario task :start scenario-id))
+
+(defun task-end-for-scenario (task scenario-id)
+  "Get task end for a specific scenario."
+  (task-value-for-scenario task :end scenario-id))
+
+(defun task-complete-for-scenario (task scenario-id)
+  "Get task completion for a specific scenario."
+  (task-value-for-scenario task :complete scenario-id))
 
 (defclass resource ()
   ((id :initarg :id :reader resource-id)

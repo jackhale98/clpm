@@ -137,6 +137,7 @@
 
 (defun resolve-overallocation-on-date (project resource date)
   "Resolve over-allocation on a specific date by shifting tasks"
+  (declare (ignore date))
   (let* ((tasks (tasks-using-resource-on-date resource project date))
          ;; Sort tasks: low priority first, then by slack (most slack first)
          ;; Tasks to be shifted will be taken from the sorted list, keeping the first one
@@ -158,12 +159,34 @@
     ;; So shift from the front, but keep at least one task
     (let ((current-load (length tasks)))
       (when (> current-load 1)
-        ;; Reverse so we can pop from front while keeping highest priority
-        (let ((tasks-to-consider (butlast sorted-tasks)))  ; All but the last (highest priority)
-          (dolist (task tasks-to-consider)
+        ;; The last task in sorted-tasks is the one we keep in place
+        (let* ((task-to-keep (car (last sorted-tasks)))
+               (tasks-to-shift (butlast sorted-tasks)))
+          (dolist (task tasks-to-shift)
             (when (> current-load 1)
-              (shift-task-forward task project)
+              ;; Shift task to start after the kept task ends
+              (shift-task-past-other task task-to-keep project)
               (decf current-load))))))))
+
+(defun shift-task-past-other (task other-task project)
+  "Shift a task to start after another task ends to resolve over-allocation.
+
+   The task will start at the end date of other-task, respecting dependencies."
+  (let* ((new-start (task-end other-task))
+         (duration-days (if (task-duration task)
+                           (duration-value (task-duration task))
+                           1))
+         (new-end (date+ new-start (duration duration-days :days))))
+
+    ;; Verify dependencies still valid
+    (let ((min-start (calculate-earliest-valid-start task project)))
+      (when (date< new-start min-start)
+        (setf new-start min-start)
+        (setf new-end (date+ new-start (duration duration-days :days)))))
+
+    ;; Update task dates
+    (setf (task-start task) new-start)
+    (setf (task-end task) new-end)))
 
 (defun shift-task-forward (task project)
   "Shift a task forward in time to resolve over-allocation.

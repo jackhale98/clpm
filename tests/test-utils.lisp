@@ -16,12 +16,17 @@
      ,@body))
 
 (defun make-test-project ()
-  "Create a minimal test project"
-  (make-instance 'project
-                 :id 'test
-                 :name "Test Project"
-                 :start (date 2024 1 1)
-                 :end (date 2024 12 31)))
+  "Create a minimal test project with default scenario"
+  (let ((project (make-instance 'project
+                                :id 'test
+                                :name "Test Project"
+                                :start (date 2024 1 1)
+                                :end (date 2024 12 31))))
+    ;; Create default 'plan scenario (TaskJuggler-style)
+    (setf (project-scenarios project)
+          (list (make-instance 'scenario :id 'plan :name "PLAN")))
+    (setf (project-current-scenario project) 'plan)
+    project))
 
 (defun make-test-namespace ()
   "Create a test namespace"
@@ -72,6 +77,10 @@
                             :source t2
                             :target-ref 't1
                             :target t1)))
+    ;; Create default 'plan scenario (TaskJuggler-style)
+    (setf (project-scenarios project)
+          (list (make-instance 'scenario :id 'plan :name "PLAN")))
+    (setf (project-current-scenario project) 'plan)
     (setf (gethash 't1 (project-tasks project)) t1)
     (setf (gethash 't2 (project-tasks project)) t2)
     (setf (task-dependencies t2) (list dep))

@@ -70,4 +70,6 @@
              :start (date 2024 1 1)
              :end (date 2024 12 31)))
 
-    (is (eq :plan (project-current-scenario *current-project*)))))
+    ;; Current scenario is a symbol, not a keyword (TaskJuggler-style)
+    ;; Compare symbol names since packages may differ
+    (is (string= "PLAN" (symbol-name (project-current-scenario *current-project*))))))

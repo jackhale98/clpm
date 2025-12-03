@@ -22,6 +22,10 @@
    After scheduling, automatically calculates critical path using CPM."
   (declare (ignore scenario))
 
+  ;; Reset scheduling state for all tasks before rescheduling
+  ;; This ensures dependent tasks get updated when predecessors change
+  (reset-scheduling-state project)
+
   ;; Get tasks in dependency order (topological sort)
   (let ((sorted-tasks (topological-sort-tasks project)))
 
@@ -33,6 +37,46 @@
     (calculate-critical-path project)
 
     t))
+
+(defun reset-scheduling-state (project)
+  "Reset scheduling state for tasks that don't have a user-defined fixed start.
+   Tasks with a fixed start date (set via :start in deftask) keep their start.
+   Tasks without a fixed start have their computed dates cleared for rescheduling."
+  (maphash (lambda (id task)
+             (declare (ignore id))
+             ;; Clear scheduled flag for all tasks
+             (setf (task-scheduled-p task) nil)
+             ;; Clear computed dates for tasks without a fixed start constraint
+             ;; A task has a fixed start if it has a start-constraint of type :mso
+             ;; or if it was defined with :start in deftask
+             ;; We preserve the start date only if it was explicitly set
+             ;; and has not been scheduled yet (i.e., this is first scheduling)
+             ;; For rescheduling, we need to check if start was dependency-computed
+             ;;
+             ;; Simple heuristic: if start equals project start and task has no deps,
+             ;; it's likely a fixed start. Otherwise clear it for recalculation.
+             (unless (task-has-fixed-start-p task project)
+               (setf (task-start task) nil)
+               (setf (task-end task) nil))
+             ;; Always clear CPM slots for recalculation
+             (setf (task-early-start task) nil)
+             (setf (task-early-finish task) nil)
+             (setf (task-late-start task) nil)
+             (setf (task-late-finish task) nil)
+             (setf (task-slack task) nil))
+           (project-tasks project)))
+
+(defun task-has-fixed-start-p (task project)
+  "Check if a task has a user-defined fixed start date.
+   Returns T if the task should keep its start date during rescheduling."
+  (declare (ignore project))
+  ;; A task has a fixed start if:
+  ;; 1. It has a :mso (must-start-on) constraint, OR
+  ;; 2. It has a start date AND no dependencies (root task with explicit start)
+  (or (and (task-start-constraint task)
+           (eq :mso (constraint-type (task-start-constraint task))))
+      (and (task-start task)
+           (null (task-dependencies task)))))
 
 (defun calculate-critical-path (project)
   "Convenience function that performs all CPM analysis steps.
@@ -309,8 +353,10 @@
                   (setf (gethash task in-progress) nil)
                   (push task sorted)))))
 
-      ;; Visit all tasks (starting with root tasks to get proper ordering)
+      ;; Only visit root-level tasks (those without parents)
+      ;; Subtasks will be visited through their parents
       (loop for task being the hash-values of (project-tasks project)
+            when (null (task-parent task))
             do (visit task))
 
       ;; Return tasks in correct order (dependencies first, subtasks before parents)

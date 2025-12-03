@@ -171,10 +171,9 @@
                      (task-end task))))
          (project-tasks *current-project*))
 
-;; Create baseline for EVM
-(let ((baseline (create-baseline *current-project* :name "Initial Plan")))
-  (set-project-baseline *current-project* baseline)
-  (format t "~%✓ Baseline created for EVM tracking~%"))
+;; EVM uses the first scenario (plan) as baseline
+;; No explicit baseline creation needed with TaskJuggler-style scenarios
+(format t "~%✓ Using default scenario 'plan' as baseline for EVM tracking~%")
 
 (format t "~%")
 
@@ -352,7 +351,7 @@
 (format t "  ✓ Working hours calculations~%")
 (format t "  ✓ Actual time tracking with bookings~%")
 (format t "  ✓ Auto-calculated task completion~%")
-(format t "  ✓ EVM metrics from real bookings~%")
+(format t "  ✓ EVM metrics from real bookings (using first scenario as baseline)~%")
 (format t "  ✓ Resource utilization tracking~%")
 (format t "  ✓ Calendar-aware project planning~%~%")
 

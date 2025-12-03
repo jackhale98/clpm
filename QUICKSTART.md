@@ -199,20 +199,33 @@ sbcl --script examples/effort-scheduling.lisp
   (format t "Task: ~A% complete~%" (task-complete task)))
 ```
 
+#### Scenarios (What-If Analysis)
+
+```lisp
+;; Define project with multiple scenarios
+(defproject demo "Demo"
+  :start (date 2024 1 1)
+  :end (date 2024 12 31)
+  :scenarios (plan delayed)  ; First is baseline
+
+  (deftask backend "Backend"
+    :duration (duration 10 :days)
+    :delayed/duration (duration 15 :days)))  ; Different value for delayed scenario
+
+;; Compare scenarios
+(compare-scenarios *current-project* 'plan 'delayed)
+```
+
 #### Earned Value Management (EVM)
 
 ```lisp
-;; Create baseline
-(let ((baseline (create-baseline *current-project* :name "Plan")))
-  (set-project-baseline *current-project* baseline))
-
-;; Update completion
+;; EVM uses the baseline scenario (first one) automatically
 (setf (task-complete (gethash 'my-task (project-tasks *current-project*))) 50)
 
 ;; Calculate metrics
-(let ((pv (calculate-planned-value *current-project* (local-time:now)))
+(let ((pv (calculate-planned-value *current-project* (date 2024 6 1)))
       (ev (calculate-earned-value *current-project*))
-      (spi (calculate-spi *current-project* (local-time:now))))
+      (spi (calculate-spi *current-project* (date 2024 6 1))))
   (format t "Planned: ~A%, Earned: ~A%, SPI: ~,2F~%" pv ev spi))
 ```
 

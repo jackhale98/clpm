@@ -318,36 +318,29 @@
    #:project-probability-of-completion-by
    #:pert-duration-for-scheduling
 
-   ;; What-if scenarios
-   #:what-if-scenario
-   #:create-scenario
+   ;; Scenarios (TaskJuggler-style)
+   #:scenario
+   #:scenario-id
    #:scenario-name
-   #:scenario-project
-   #:scenario-description
-   #:scenario-created-at
-   #:scenario-task-modifications
-   #:scenario-task-snapshots
-   #:scenario-added-dependencies
-   #:scenario-removed-dependencies
-   #:scenario-scheduled-data
-   #:snapshot-task
-   #:scenario-modify-task
-   #:scenario-add-dependency
-   #:scenario-remove-dependency
-   #:schedule-scenario
-   #:scenario-topological-sort
-   #:schedule-scenario-task
-   #:scenario-earliest-start
-   #:get-scenario-task-data
-   #:scenario-end-date
-   #:scenario-total-duration
-   #:scenario-total-cost
+   #:scenario-parent
+   #:scenario-enabled-p
    #:list-scenarios
    #:get-scenario
-   #:delete-scenario
+   #:baseline-scenario
+   #:baseline-scenario-id
    #:compare-scenarios
+   #:compare-task-scenarios
    #:scenario-summary
-   #:scenario-critical-path
+   #:task-scheduled-values-for-scenario
+   #:task-value-for-scenario
+   #:task-effort-for-scenario
+   #:task-duration-for-scenario
+   #:task-start-for-scenario
+   #:task-end-for-scenario
+   #:task-complete-for-scenario
+   #:task-scenario-values
+   #:project-latest-end
+   #:days-between-dates
 
    ;; Resource availability
    #:leave

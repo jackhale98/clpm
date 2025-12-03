@@ -57,6 +57,8 @@
 (format t "~%")
 (run! 'cost-tracking-suite)
 (format t "~%")
+(run! 'baseline-scenarios-suite)
+(format t "~%")
 (run! 'dependency-types-suite)
 (format t "~%")
 (run! 'availability-suite)

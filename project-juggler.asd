@@ -155,7 +155,8 @@
                   :components
                   ((:file "test-evm")
                    (:file "test-bookings")
-                   (:file "test-costs")))
+                   (:file "test-costs")
+                   (:file "test-baseline-scenarios")))
                 (:module "scenarios"
                   :serial t
                   :components

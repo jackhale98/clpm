@@ -1,5 +1,7 @@
 ;;;; src/tracking/evm.lisp
 ;;;; Earned Value Management calculations
+;;;;
+;;;; Uses TaskJuggler-style scenarios where the first scenario is the baseline.
 
 (in-package #:project-juggler)
 
@@ -7,56 +9,66 @@
 ;;; Planned Value (PV)
 ;;; ============================================================================
 
-(defun calculate-planned-value (project status-date)
+(defun calculate-planned-value (project status-date &key scenario)
   "Calculate Planned Value at the given status date.
 
    PV is the percentage of work that should be complete by the status date
-   according to the baseline schedule."
+   according to the baseline schedule.
 
-  (unless (project-baseline project)
-    (error "Project has no baseline"))
+   SCENARIO - optional scenario ID. If not provided, uses baseline (first scenario)."
 
-  (let ((total-tasks 0)
-        (total-pv 0.0))
-    (loop for baseline-task being the hash-values of (baseline-tasks (project-baseline project))
-          do (incf total-tasks)
-             (let ((task-pv (calculate-task-planned-value baseline-task status-date)))
-               (incf total-pv task-pv)))
+  (let* ((scenario-id (or scenario (baseline-scenario-id project)))
+         (total-tasks 0)
+         (total-pv 0.0))
+    (unless scenario-id
+      (error "Project has no scenarios"))
+
+    (maphash (lambda (task-id task)
+               (declare (ignore task-id))
+               (incf total-tasks)
+               (let ((start (task-start-for-scenario task scenario-id))
+                     (end (task-end-for-scenario task scenario-id)))
+                 (when (and start end)
+                   (incf total-pv (calculate-task-pv start end status-date)))))
+             (project-tasks project))
 
     (if (zerop total-tasks)
         0.0
         (/ total-pv total-tasks))))
 
-(defun calculate-task-planned-value (baseline-task status-date)
-  "Calculate planned value for a single task"
-  (let ((start (baseline-task-start baseline-task))
-        (end (baseline-task-end baseline-task)))
-    (cond
-      ;; Task hasn't started yet
-      ((date< status-date start) 0.0)
+(defun calculate-task-pv (start end status-date)
+  "Calculate planned value for a single task given its start/end dates."
+  (cond
+    ;; Task hasn't started yet
+    ((date< status-date start) 0.0)
 
-      ;; Task is complete
-      ((date>= status-date end) 100.0)
+    ;; Task is complete
+    ((date>= status-date end) 100.0)
 
-      ;; Task is in progress
-      (t (let* ((total-days (date-difference-days end start))
-                (elapsed-days (date-difference-days status-date start))
-                (percent (if (zerop total-days)
-                            100.0
-                            (* 100.0 (/ elapsed-days total-days)))))
-           (max 0.0 (min 100.0 percent)))))))
+    ;; Task is in progress
+    (t (let* ((total-days (date-difference-days end start))
+              (elapsed-days (date-difference-days status-date start))
+              (percent (if (zerop total-days)
+                          100.0
+                          (* 100.0 (/ elapsed-days total-days)))))
+         (max 0.0 (min 100.0 percent))))))
 
 ;;; ============================================================================
 ;;; Earned Value (EV)
 ;;; ============================================================================
 
-(defun calculate-earned-value (project)
-  "Calculate Earned Value - percentage of work actually complete"
-  (let ((total-tasks 0)
+(defun calculate-earned-value (project &key scenario)
+  "Calculate Earned Value - percentage of work actually complete.
+
+   SCENARIO - optional scenario ID. If nil, uses current task completion values."
+  (let ((scenario-id (or scenario (baseline-scenario-id project)))
+        (total-tasks 0)
         (total-ev 0.0))
-    (loop for task being the hash-values of (project-tasks project)
-          do (incf total-tasks)
-             (incf total-ev (task-complete task)))
+    (maphash (lambda (task-id task)
+               (declare (ignore task-id))
+               (incf total-tasks)
+               (incf total-ev (task-complete-for-scenario task scenario-id)))
+             (project-tasks project))
 
     (if (zerop total-tasks)
         0.0
@@ -66,25 +78,29 @@
 ;;; Schedule Variance (SV) and Schedule Performance Index (SPI)
 ;;; ============================================================================
 
-(defun calculate-schedule-variance (project status-date)
+(defun calculate-schedule-variance (project status-date &key scenario)
   "Calculate Schedule Variance (SV) = EV - PV
 
    Positive = ahead of schedule
-   Negative = behind schedule"
+   Negative = behind schedule
 
-  (let ((ev (calculate-earned-value project))
-        (pv (calculate-planned-value project status-date)))
+   SCENARIO - optional scenario ID for PV calculation."
+
+  (let ((ev (calculate-earned-value project :scenario scenario))
+        (pv (calculate-planned-value project status-date :scenario scenario)))
     (- ev pv)))
 
-(defun calculate-spi (project status-date)
+(defun calculate-spi (project status-date &key scenario)
   "Calculate Schedule Performance Index (SPI) = EV / PV
 
    > 1.0 = ahead of schedule
    < 1.0 = behind schedule
-   = 1.0 = on schedule"
+   = 1.0 = on schedule
 
-  (let ((ev (calculate-earned-value project))
-        (pv (calculate-planned-value project status-date)))
+   SCENARIO - optional scenario ID for PV calculation."
+
+  (let ((ev (calculate-earned-value project :scenario scenario))
+        (pv (calculate-planned-value project status-date :scenario scenario)))
     (if (zerop pv)
         1.0  ; No work planned yet
         (/ ev pv))))
@@ -92,8 +108,6 @@
 ;;; ============================================================================
 ;;; Helper Functions
 ;;; ============================================================================
-;;; Note: Resource over-allocation detection and leveling functions are in
-;;; src/scheduling/resource-allocation.lisp
 
 (defun date-difference-days (date1 date2)
   "Calculate difference between two dates in days"
