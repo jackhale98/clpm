@@ -339,8 +339,9 @@
     (setf forms remaining)
 
     `(let* ((parent-task *current-task*)
+            (prefixed-id (apply-namespace-prefix ',id))
             (task (make-instance 'task
-                                :id ',id
+                                :id prefixed-id
                                 :name ,name
                                 :project *current-project*
                                 :parent parent-task

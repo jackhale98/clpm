@@ -114,6 +114,87 @@ claps --help
 (format t "Critical Path: ~A tasks~%" (length (critical-path *current-project*)))
 ```
 
+## Modular Project Organization
+
+CLAPS supports TaskJuggler-style modular project organization. Split large projects across multiple files for better maintainability.
+
+### Include Functionality
+
+Include other files into your project using the `include` macro:
+
+```lisp
+(defproject saas-platform "SaaS Platform"
+  :start (date 2024 11 1)
+  :end (date 2025 3 31)
+
+  ;; Include resources from separate file
+  (include "resources/team.lisp")
+
+  ;; Include tasks with namespace prefix
+  ;; All IDs will be prefixed: api -> backend/api
+  (include "phases/backend.lisp" :namespace backend)
+  (include "phases/frontend.lisp" :namespace frontend)
+
+  ;; Main project integration task
+  (deftask integration "System Integration"
+    :depends-on (backend/api frontend/ui)
+    :allocate (fullstack-dev)))
+```
+
+### Namespace Prefixing
+
+When including with `:namespace`, all task and resource IDs are automatically prefixed:
+
+```lisp
+;; phases/backend.lisp
+(in-package :claps)
+
+(deftask api "REST API"
+  :effort (duration 60 :hours))
+
+(deftask auth "Authentication"
+  :depends-on (backend/api)  ; Use full prefixed name for deps
+  :effort (duration 30 :hours))
+```
+
+**Note:** Dependencies within a namespaced file must use the full prefixed name (e.g., `backend/api` not just `api`).
+
+### Convenience Macros
+
+```lisp
+;; Semantic aliases for include
+(include-resources "team.lisp")           ; Resources file
+(include-tasks "tasks.lisp" :namespace x) ; Tasks with namespace
+(include-timesheets "nov.lisp")           ; Time tracking
+(include-subproject "sub.lisp" :namespace sub) ; Full subproject
+```
+
+### Separate Time Tracking
+
+Keep project schedules clean by putting time entries in separate files:
+
+```lisp
+;; main.lisp - clean schedule
+(defproject my-project "My Project"
+  (include "schedule/tasks.lisp")
+  (include "timesheets/november.lisp"))  ; Load time entries separately
+```
+
+```lisp
+;; timesheets/november.lisp
+(in-package :claps)
+
+(defbookings
+  (backend/api alice (date 2024 11 4) 8)
+  (backend/api alice (date 2024 11 5) 8))
+
+(deftimesheet bob
+  (frontend/ui (date 2024 11 4) 8)
+  (frontend/ui (date 2024 11 5) 6))
+```
+
+See `examples/modular-project/` for a complete working example.
+
 ## Scenarios (TaskJuggler-style)
 
 CLAPS uses TaskJuggler-style scenarios for what-if analysis and baseline tracking.

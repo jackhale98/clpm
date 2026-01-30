@@ -117,7 +117,6 @@
    #:namespace-resources
    #:namespace-source-file
    #:in-namespace
-   #:include
    #:resolve-task-reference
    #:resolve-resource-reference
    #:register-task
@@ -125,6 +124,21 @@
    #:parse-qualified-symbol
    #:find-namespace
    #:ensure-namespace
+
+   ;; Include system (modular project organization)
+   #:include
+   #:include-file
+   #:include-resources
+   #:include-calendars
+   #:include-tasks
+   #:include-timesheets
+   #:include-subproject
+   #:apply-namespace-prefix
+   #:*current-namespace-prefix*
+   #:*include-stack*
+   #:*include-base-path*
+   #:resolve-include-path
+   #:list-includes
 
    ;; DSL macros
    #:defproject

@@ -43,7 +43,7 @@ CLAPS is a TaskJuggler-inspired project management tool that brings powerful sch
 
 ### Developer Features
 - **Session Management** - Save and load project state with full fidelity
-- **Namespace System** - Organize large projects into modular components
+- **Modular Includes** - Split projects across files with `include`, namespace prefixing
 - **Comprehensive Validation** - Circular dependency detection, constraint checking
 - **Type Safety** - Rich temporal types (dates, durations, intervals)
 - **Monte Carlo Simulation** - Quantitative schedule risk analysis with PERT
@@ -378,6 +378,7 @@ The [`examples/`](examples/) directory contains demonstration projects:
 - **web-application.lisp** - Complex SaaS platform with scenarios (40+ tasks, multiple teams)
 - **effort-scheduling.lisp** - Effort-based scheduling with resource efficiency
 - **monte-carlo-example.lisp** - Schedule risk analysis with PERT simulation
+- **modular-project/** - Multi-file project with includes and namespace prefixing
 
 Run from repository root: `sbcl --script examples/simple-project.lisp`
 

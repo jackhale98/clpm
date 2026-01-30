@@ -142,7 +142,8 @@
                   :serial t
                   :components
                   ((:file "test-namespace")
-                   (:file "test-references")))
+                   (:file "test-references")
+                   (:file "test-include")))
                  (:module "dsl"
                   :serial t
                   :components

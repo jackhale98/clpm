@@ -88,8 +88,9 @@
     ;; Remaining elements are body forms
     (setf forms remaining)
 
-    `(let ((resource (make-instance 'resource
-                                   :id ',id
+    `(let* ((prefixed-id (apply-namespace-prefix ',id))
+            (resource (make-instance 'resource
+                                   :id prefixed-id
                                    :name ,name
                                    :project *current-project*
                                    ,@(when efficiency-expr `(:efficiency ,efficiency-expr))
