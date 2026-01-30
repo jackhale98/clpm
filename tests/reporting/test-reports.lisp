@@ -1,7 +1,7 @@
 ;;;; tests/reporting/test-reports.lisp
 ;;;; Tests for Reporting Engine (Phase 8)
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite reporting-suite
   :in project-juggler-suite

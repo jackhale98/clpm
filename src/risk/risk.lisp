@@ -1,7 +1,7 @@
 ;;;; src/risk/risk.lisp
 ;;;; Risk register and risk management
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Risk Class

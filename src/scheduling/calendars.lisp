@@ -1,7 +1,7 @@
 ;;;; src/scheduling/calendars.lisp
 ;;;; Working time calendars
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;;
 ;;; Working Hours Class

@@ -1,7 +1,7 @@
 ;;;; tests/dsl/test-defresource.lisp
 ;;;; Tests for defresource macro
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite dsl-suite)
 

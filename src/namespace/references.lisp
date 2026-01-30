@@ -1,7 +1,7 @@
 ;;;; src/namespace/references.lisp
 ;;;; Reference resolution implementation
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; Task reference resolution
 

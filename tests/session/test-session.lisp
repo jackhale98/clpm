@@ -1,7 +1,7 @@
 ;;;; tests/session/test-session.lisp
 ;;;; Tests for Session Management (Phase 7)
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite session-suite
   :in project-juggler-suite

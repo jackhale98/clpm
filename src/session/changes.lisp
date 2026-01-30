@@ -1,7 +1,7 @@
 ;;;; src/session/changes.lisp
 ;;;; Change tracking for undo/redo
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Change Class

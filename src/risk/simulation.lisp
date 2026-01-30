@@ -1,7 +1,7 @@
 ;;;; src/risk/simulation.lisp
 ;;;; Monte Carlo PERT simulation for project schedule risk analysis
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Simulation Trial Class

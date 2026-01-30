@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-scheduler.lisp
 ;;;; Tests for TaskJuggler-style scheduling algorithm
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite scheduling-suite
   :in project-juggler-suite

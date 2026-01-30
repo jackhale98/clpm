@@ -1,7 +1,7 @@
 ;;;; src/tracking/baseline.lisp
 ;;;; Baseline creation and management
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Baseline Creation

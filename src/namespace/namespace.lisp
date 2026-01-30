@@ -1,7 +1,7 @@
 ;;;; src/namespace/namespace.lisp
 ;;;; Namespace system implementation
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; Namespace class is already defined in src/core/classes.lisp
 

@@ -1,7 +1,7 @@
 ;;;; src/reporting/reports.lisp
 ;;;; Base reporting functionality
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Main Report Generation

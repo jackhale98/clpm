@@ -1,7 +1,7 @@
 ;;;; src/reporting/gantt.lisp
 ;;;; Gantt chart data generation and export
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Gantt Chart Data Generation

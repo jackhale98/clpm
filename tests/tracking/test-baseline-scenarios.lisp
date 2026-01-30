@@ -4,7 +4,7 @@
 ;;;; In TaskJuggler-style, the first scenario is the baseline.
 ;;;; There's no separate "baseline" concept - just scenarios.
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite baseline-scenarios-suite
   :in project-juggler-suite

@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-calendars.lisp
 ;;;; Tests for working time calendars
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite calendar-suite
   :in scheduling-suite

@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-dependency-types.lisp
 ;;;; Tests for extended dependency types (SS, FF, SF) and lag/lead times
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite dependency-types-suite
   :in project-juggler-suite

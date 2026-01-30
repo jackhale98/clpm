@@ -19,9 +19,9 @@
     (load quicklisp-init)))
 
 ;; Load dependencies and project-juggler
-(ql:quickload :project-juggler :silent t)
+(ql:quickload :claps :silent t)
 
-(in-package :project-juggler)
+(in-package :claps)
 
 ;;; =============================================================================
 ;;; PROJECT DEFINITION WITH PERT ESTIMATES

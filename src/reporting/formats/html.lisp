@@ -1,7 +1,7 @@
 ;;;; src/reporting/formats/html.lisp
 ;;;; HTML report formatting
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; HTML Task Reports

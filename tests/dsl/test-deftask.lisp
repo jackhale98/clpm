@@ -1,7 +1,7 @@
 ;;;; tests/dsl/test-deftask.lisp
 ;;;; Tests for deftask macro
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite dsl-suite)
 

@@ -1,7 +1,7 @@
 ;;;; src/scheduling/scheduler.lisp
 ;;;; Main scheduling algorithm (TaskJuggler heuristic)
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; Forward declaration for PERT duration calculation (defined in pert.lisp)
 (declaim (ftype (function (t) t) pert-duration-for-scheduling))

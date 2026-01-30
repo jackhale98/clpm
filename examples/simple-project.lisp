@@ -10,7 +10,7 @@
 ;;;; - EVM tracking
 ;;;; - Report generation
 
-;;; Load the project-juggler system
+;;; Load the claps system
 (require :asdf)
 (push (truename "../") asdf:*central-registry*)
 
@@ -20,10 +20,10 @@
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
-;; Load dependencies and project-juggler
-(ql:quickload :project-juggler :silent t)
+;; Load dependencies and claps
+(ql:quickload :claps :silent t)
 
-(in-package :project-juggler)
+(in-package :claps)
 
 ;;; =============================================================================
 ;;; PROJECT DEFINITION
@@ -113,7 +113,14 @@
     :type :gantt
     :format :html
     :width 1000
-    :height 300))
+    :height 300)
+
+  ;; Scenario comparison report
+  (defreport scenario-comparison "Plan vs Delayed Comparison"
+    :type :comparison
+    :format :html
+    :scenario-1 plan
+    :scenario-2 delayed))
 
 ;;; =============================================================================
 ;;; ANALYSIS AND REPORTING
@@ -219,7 +226,10 @@
 (format t "  Critical path: simple-project-critical.html~%")
 
 (save-project-report *current-project* 'gantt-chart "simple-project-gantt.html")
-(format t "  Gantt chart: simple-project-gantt.html~%~%")
+(format t "  Gantt chart: simple-project-gantt.html~%")
+
+(save-project-report *current-project* 'scenario-comparison "simple-project-comparison.html")
+(format t "  Scenario comparison: simple-project-comparison.html~%~%")
 
 (format t "--------------------------------------------------------------~%")
 (format t "EXAMPLE COMPLETE!~%")
@@ -241,5 +251,13 @@
 (format t "(setf (task-complete (gethash 'sp-requirements~%")
 (format t "                      (project-tasks *current-project*))) 50)~%")
 (format t "(calculate-earned-value *current-project*)~%~%")
+
+(format t ";; Create a new scenario (snapshot) at any time~%")
+(format t "(add-scenario *current-project* 'revised \"Revised Plan\")~%")
+(format t "(list-scenarios *current-project*)~%~%")
+
+(format t ";; Modify a value in the new scenario~%")
+(format t "(set-scenario-value *current-project* 'revised 'sp-frontend~%")
+(format t "                    :duration (duration 5 :weeks))~%~%")
 
 (format t "==============================================================~%~%")

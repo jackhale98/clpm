@@ -1,7 +1,7 @@
 ;;;; tests/constraints/test-constraints.lisp
 ;;;; Tests for task constraints and recurring tasks
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite constraints-suite
   :in project-juggler-suite

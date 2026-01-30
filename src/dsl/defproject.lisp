@@ -1,7 +1,7 @@
 ;;;; src/dsl/defproject.lisp
 ;;;; defproject macro implementation
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 (defmacro defproject (id name &body body)
   "Define a project.

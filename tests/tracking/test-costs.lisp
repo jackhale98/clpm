@@ -1,7 +1,7 @@
 ;;;; tests/tracking/test-costs.lisp
 ;;;; Tests for cost tracking functionality
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite cost-tracking-suite
   :in project-juggler-suite

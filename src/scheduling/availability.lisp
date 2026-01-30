@@ -1,7 +1,7 @@
 ;;;; src/scheduling/availability.lisp
 ;;;; Resource availability calculations
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Leave/Vacation Checking

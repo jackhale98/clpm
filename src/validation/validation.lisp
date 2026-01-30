@@ -1,7 +1,7 @@
 ;;;; src/validation/validation.lisp
 ;;;; Project validation and finalization
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Main Finalization Entry Point

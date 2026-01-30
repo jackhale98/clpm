@@ -1,7 +1,7 @@
 ;;;; tests/validation/test-validation.lisp
 ;;;; Tests for project validation and finalization
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite validation-suite
   :in project-juggler-suite

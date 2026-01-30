@@ -1,52 +1,62 @@
 ;;;; tests/test-package.lisp
 ;;;; Test package definition
 
-(defpackage #:project-juggler-tests
-  (:use #:cl #:fiveam #:project-juggler)
+(defpackage #:claps-tests
+  (:use #:cl #:fiveam #:claps)
+  (:nicknames #:project-juggler-tests)  ; Backwards compatibility
   (:export #:run-tests
-           #:project-juggler-suite))
+           #:claps-suite
+           #:project-juggler-suite))  ; Backwards compatibility
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
+(def-suite claps-suite
+  :description "All CLAPS tests")
+
+;; Backwards compatibility alias
 (def-suite project-juggler-suite
-  :description "All Project Juggler tests")
+  :description "Alias for CLAPS suite")
 
 (def-suite types-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Temporal types tests")
 
 (def-suite classes-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Core CLOS classes tests")
 
 (def-suite namespace-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Namespace system tests")
 
 (def-suite dsl-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "DSL macros tests")
 
 (def-suite validation-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Validation and finalization tests")
 
 (def-suite scheduling-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Scheduling algorithm tests")
 
 (def-suite session-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Session management tests")
 
 (def-suite reporting-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Reporting engine tests")
 
 (def-suite integration-suite
-  :in project-juggler-suite
+  :in claps-suite
   :description "Integration tests")
 
+(def-suite cli-suite
+  :in claps-suite
+  :description "CLI tests")
+
 (defun run-tests ()
-  "Run all Project Juggler tests"
-  (run! 'project-juggler-suite))
+  "Run all CLAPS tests"
+  (run! 'claps-suite))

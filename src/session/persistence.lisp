@@ -1,7 +1,7 @@
 ;;;; src/session/persistence.lisp
 ;;;; Project loading and saving
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Load Project Session

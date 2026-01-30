@@ -1,7 +1,7 @@
 ;;;; tests/namespace/test-references.lisp
 ;;;; Tests for reference resolution
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite namespace-suite)
 

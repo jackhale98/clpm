@@ -3,7 +3,7 @@
 ;;;;
 ;;;; EVM uses TaskJuggler-style scenarios. The first scenario is the baseline.
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite evm-suite
   :in project-juggler-suite

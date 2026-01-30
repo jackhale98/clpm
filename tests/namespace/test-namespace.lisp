@@ -1,7 +1,7 @@
 ;;;; tests/namespace/test-namespace.lisp
 ;;;; Tests for namespace system
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite namespace-suite)
 

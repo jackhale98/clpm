@@ -22,17 +22,17 @@
 (ql:quickload :split-sequence :silent t)
 (ql:quickload :fiveam :silent t)
 
-;; Load project-juggler
-(format t "Loading project-juggler...~%")
-(asdf:load-system :project-juggler :verbose nil)
+;; Load claps
+(format t "Loading claps...~%")
+(asdf:load-system :claps :verbose nil)
 
 ;; Load tests
-(format t "Loading project-juggler/tests...~%")
-(asdf:load-system :project-juggler/tests :verbose nil)
+(format t "Loading claps/tests...~%")
+(asdf:load-system :claps/tests :verbose nil)
 
 ;; Run tests
 (format t "~%Running tests...~%~%")
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 (run! 'types-suite)
 (format t "~%")
 (run! 'classes-suite)
@@ -74,6 +74,8 @@
 (run! 'simulation-suite)
 (format t "~%")
 (run! 'enhanced-reporting-suite)
+(format t "~%")
+(run! 'cli-suite)
 
 ;; Exit
 (uiop:quit 0)

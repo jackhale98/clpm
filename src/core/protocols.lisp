@@ -1,7 +1,7 @@
 ;;;; src/core/protocols.lisp
 ;;;; Generic function protocols
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; Temporal type protocols
 

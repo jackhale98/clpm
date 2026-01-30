@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-resource-allocation.lisp
 ;;;; Tests for resource allocation and leveling
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite resource-leveling-suite
   :in scheduling-suite

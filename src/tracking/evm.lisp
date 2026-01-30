@@ -3,7 +3,7 @@
 ;;;;
 ;;;; Uses TaskJuggler-style scenarios where the first scenario is the baseline.
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Planned Value (PV)

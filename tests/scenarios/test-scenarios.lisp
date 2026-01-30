@@ -1,7 +1,7 @@
 ;;;; tests/scenarios/test-scenarios.lisp
 ;;;; Tests for TaskJuggler-style scenario system
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite scenarios-suite
   :in project-juggler-suite

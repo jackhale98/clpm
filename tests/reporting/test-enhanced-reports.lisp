@@ -1,7 +1,7 @@
 ;;;; tests/reporting/test-enhanced-reports.lisp
 ;;;; Tests for Enhanced Reporting Features
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite enhanced-reporting-suite
   :in project-juggler-suite

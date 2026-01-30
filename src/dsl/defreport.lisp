@@ -1,7 +1,7 @@
 ;;;; src/dsl/defreport.lisp
 ;;;; defreport macro implementation with enhanced report types
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Auto-Filter Definitions
@@ -70,6 +70,12 @@
   ((filter-status :initarg :filter-status :initform nil :accessor risk-filter-status)
    (sort-by-score :initarg :sort-by-score :initform nil :accessor risk-sort-by-score))
   (:documentation "Risk register report"))
+
+(defclass comparison-report (report)
+  ((scenario-1 :initarg :scenario-1 :accessor comparison-scenario-1)
+   (scenario-2 :initarg :scenario-2 :accessor comparison-scenario-2)
+   (show-variance :initarg :show-variance :initform t :accessor comparison-show-variance))
+  (:documentation "Scenario comparison report"))
 
 ;;; ============================================================================
 ;;; Report Generation Methods
@@ -148,6 +154,14 @@
     (ecase (report-format report)
       (:html (generate-html-risk-report report risks))
       (:csv (generate-csv-risk-report report risks)))))
+
+(defmethod generate-report ((report comparison-report) project)
+  "Generate a scenario comparison report."
+  (let ((scenario-1 (comparison-scenario-1 report))
+        (scenario-2 (comparison-scenario-2 report)))
+    (ecase (report-format report)
+      (:html (generate-html-comparison-report report project scenario-1 scenario-2))
+      (:csv (generate-csv-comparison-report report project scenario-1 scenario-2)))))
 
 ;;; ============================================================================
 ;;; EVM Report Generation
@@ -395,6 +409,130 @@
     (t (if value (format nil "~A" value) ""))))
 
 ;;; ============================================================================
+;;; Comparison Report Generation
+;;; ============================================================================
+
+(defun generate-html-comparison-report (report project scenario-1 scenario-2)
+  "Generate HTML scenario comparison report."
+  (let ((comparison (compare-scenarios project scenario-1 scenario-2)))
+    (with-output-to-string (s)
+      (format s "<!DOCTYPE html>~%<html>~%<head>~%")
+      (format s "  <title>~A</title>~%" (report-title report))
+      (format s "  <style>~%")
+      (format s "    body { font-family: Arial, sans-serif; margin: 20px; }~%")
+      (format s "    table { border-collapse: collapse; width: 100%%; margin: 20px 0; }~%")
+      (format s "    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }~%")
+      (format s "    th { background-color: #4CAF50; color: white; }~%")
+      (format s "    tr:nth-child(even) { background-color: #f2f2f2; }~%")
+      (format s "    .summary { background-color: #e3f2fd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }~%")
+      (format s "    .positive { color: green; } .negative { color: red; }~%")
+      (format s "    .variance { font-weight: bold; }~%")
+      (format s "  </style>~%")
+      (format s "</head>~%<body>~%")
+      (format s "<h1>~A</h1>~%" (report-title report))
+      (format s "<p>Comparing <strong>~A</strong> vs <strong>~A</strong></p>~%"
+              scenario-1 scenario-2)
+
+      ;; Project-level summary
+      (format s "<div class=\"summary\">~%")
+      (format s "<h2>Project Summary</h2>~%")
+      (format s "<table>~%")
+      (format s "<tr><th>Metric</th><th>~A</th><th>~A</th><th>Variance</th></tr>~%"
+              scenario-1 scenario-2)
+
+      ;; Duration row
+      (let* ((d1 (getf comparison :duration-1))
+             (d2 (getf comparison :duration-2))
+             (var (- d2 d1)))
+        (format s "<tr><td>Total Duration</td><td>~,1F days</td><td>~,1F days</td>~%"
+                d1 d2)
+        (format s "  <td class=\"variance ~A\">~A~,1F days</td></tr>~%"
+                (if (> var 0) "negative" "positive")
+                (if (> var 0) "+" "")
+                var))
+
+      ;; Effort row
+      (let* ((e1 (getf comparison :effort-1))
+             (e2 (getf comparison :effort-2))
+             (var (- e2 e1)))
+        (format s "<tr><td>Total Effort</td><td>~,1F days</td><td>~,1F days</td>~%"
+                e1 e2)
+        (format s "  <td class=\"variance ~A\">~A~,1F days</td></tr>~%"
+                (if (> var 0) "negative" "positive")
+                (if (> var 0) "+" "")
+                var))
+
+      ;; End date row
+      (let ((end1 (getf comparison :end-1))
+            (end2 (getf comparison :end-2)))
+        (format s "<tr><td>Project End</td><td>~A</td><td>~A</td>~%"
+                (if end1 (format-date-iso end1) "-")
+                (if end2 (format-date-iso end2) "-"))
+        (if (and end1 end2)
+            (let ((days-diff (days-between end1 end2)))
+              (format s "  <td class=\"variance ~A\">~A~A days</td></tr>~%"
+                      (if (> days-diff 0) "negative" "positive")
+                      (if (> days-diff 0) "+" "")
+                      days-diff))
+            (format s "  <td>-</td></tr>~%")))
+
+      (format s "</table>~%")
+      (format s "</div>~%")
+
+      ;; Task-level comparison
+      (format s "<h2>Task-Level Comparison</h2>~%")
+      (format s "<table>~%")
+      (format s "<tr><th>Task</th><th>~A Duration</th><th>~A Duration</th><th>Variance</th></tr>~%"
+              scenario-1 scenario-2)
+
+      (maphash (lambda (id task)
+                 (declare (ignore id))
+                 (let* ((d1 (task-duration-for-scenario task scenario-1))
+                        (d2 (task-duration-for-scenario task scenario-2))
+                        (days1 (when d1 (duration-in-days d1)))
+                        (days2 (when d2 (duration-in-days d2))))
+                   (when (or days1 days2)
+                     (format s "<tr><td>~A</td><td>~A</td><td>~A</td>~%"
+                             (html-escape (task-name task))
+                             (if days1 (format nil "~,1F days" days1) "-")
+                             (if days2 (format nil "~,1F days" days2) "-"))
+                     (if (and days1 days2)
+                         (let ((var (- days2 days1)))
+                           (format s "  <td class=\"variance ~A\">~A~,1F days</td></tr>~%"
+                                   (if (> var 0) "negative" (if (< var 0) "positive" ""))
+                                   (if (> var 0) "+" "")
+                                   var))
+                         (format s "  <td>-</td></tr>~%")))))
+               (project-tasks project))
+
+      (format s "</table>~%")
+      (format s "</body>~%</html>"))))
+
+(defun generate-csv-comparison-report (report project scenario-1 scenario-2)
+  "Generate CSV scenario comparison report."
+  (declare (ignore report))
+  (with-output-to-string (s)
+    ;; Header
+    (format s "Task,~A Duration,~A Duration,Variance~%"
+            scenario-1 scenario-2)
+    ;; Tasks
+    (maphash (lambda (id task)
+               (declare (ignore id))
+               (let* ((d1 (task-duration-for-scenario task scenario-1))
+                      (d2 (task-duration-for-scenario task scenario-2))
+                      (days1 (when d1 (duration-in-days d1)))
+                      (days2 (when d2 (duration-in-days d2))))
+                 (when (or days1 days2)
+                   (format s "~A,~A,~A,~A~%"
+                           (csv-escape (task-name task))
+                           (if days1 (format nil "~,1F" days1) "")
+                           (if days2 (format nil "~,1F" days2) "")
+                           (if (and days1 days2)
+                               (format nil "~,1F" (- days2 days1))
+                               "")))))
+             (project-tasks project))))
+
+;;; ============================================================================
 ;;; Enhanced defreport Macro
 ;;; ============================================================================
 
@@ -459,6 +597,13 @@
        :width 1200
        :height 600)
 
+     ;; Scenario comparison report
+     (defreport plan-vs-delayed \"Plan vs Delayed Comparison\"
+       :type :comparison
+       :format :html
+       :scenario-1 plan
+       :scenario-2 delayed)
+
    Report Types:
      :task          - Standard task report
      :resource      - Resource report
@@ -468,6 +613,7 @@
      :simulation    - Monte Carlo simulation report
      :risk          - Risk register report
      :gantt         - Gantt chart
+     :comparison    - Scenario comparison report
 
    Formats:
      :html  - HTML table (default)
@@ -497,6 +643,8 @@
         (include-histogram-expr nil)
         (include-summary-expr nil)
         (filter-status-expr nil)
+        (scenario-1-expr nil)
+        (scenario-2-expr nil)
         (remaining body))
 
     (loop while (and remaining (keywordp (first remaining)))
@@ -516,6 +664,8 @@
                  (:include-histogram (setf include-histogram-expr value))
                  (:include-summary (setf include-summary-expr value))
                  (:filter-status (setf filter-status-expr value))
+                 (:scenario-1 (setf scenario-1-expr value))
+                 (:scenario-2 (setf scenario-2-expr value))
                  (t (warn "Unknown keyword in defreport: ~A" keyword)))
                (setf remaining (cddr remaining))))
 
@@ -529,6 +679,7 @@
                          (:simulation 'simulation-report)
                          (:risk 'risk-report)
                          (:gantt 'gantt-report)
+                         (:comparison 'comparison-report)
                          (t (error "Unknown report type: ~A" type-expr)))))
 
       ;; Build filter expression with auto-filter support
@@ -558,7 +709,10 @@
                                       ,@(when (eq type-expr :evm)
                                           `(:include-summary ,include-summary-expr))
                                       ,@(when filter-status-expr
-                                          `(:filter-status ,filter-status-expr)))))
+                                          `(:filter-status ,filter-status-expr))
+                                      ,@(when (eq type-expr :comparison)
+                                          `(:scenario-1 ',scenario-1-expr
+                                            :scenario-2 ',scenario-2-expr)))))
 
            ;; Register report with project
            (setf (gethash ',id (project-reports *current-project*)) report)

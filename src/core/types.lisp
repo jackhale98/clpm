@@ -1,7 +1,7 @@
 ;;;; src/core/types.lisp
 ;;;; Temporal types (to be implemented via TDD)
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; Special variables
 

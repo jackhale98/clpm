@@ -1,7 +1,7 @@
 ;;;; tests/test-utils.lisp
 ;;;; Test utilities and helper functions
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 ;;; Test fixtures and utilities
 

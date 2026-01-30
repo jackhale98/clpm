@@ -1,6 +1,6 @@
-# Project Juggler - Usage Guide
+# CLAPS - Usage Guide
 
-This guide shows how to use Project Juggler for project management.
+This guide shows how to use CLAPS for project management.
 
 ## Installation
 
@@ -9,17 +9,17 @@ This guide shows how to use Project Juggler for project management.
 ```bash
 # Clone to your local Quicklisp directory
 cd ~/quicklisp/local-projects/
-git clone <repository-url> project-juggler
+git clone <repository-url> claps
 
 # Or symlink it
-ln -s /path/to/project-juggler ~/quicklisp/local-projects/
+ln -s /path/to/claps ~/quicklisp/local-projects/
 ```
 
 Then from any directory:
 
 ```lisp
-(ql:quickload :project-juggler)
-(in-package :project-juggler)
+(ql:quickload :claps)
+(in-package :claps)
 ```
 
 ### Option 2: Manual ASDF Configuration
@@ -27,14 +27,65 @@ Then from any directory:
 Add to your `~/.sbclrc`:
 
 ```lisp
-(push #P"/path/to/project-juggler/" asdf:*central-registry*)
+(push #P"/path/to/claps/" asdf:*central-registry*)
 ```
 
-## Quick Start
+## Command-Line Interface
+
+CLAPS includes a powerful CLI for quick project analysis without writing code.
+
+### Building the CLI
+
+```bash
+./scripts/build-claps.sh
+```
+
+### CLI Usage
+
+```bash
+# Process project and generate all reports
+claps project.lisp
+
+# Quick project overview
+claps project.lisp --summary
+
+# Show critical path
+claps project.lisp --critical-path
+
+# Show resource utilization
+claps project.lisp --resources
+
+# Show resource conflicts
+claps project.lisp --overallocations
+
+# Show earned value metrics
+claps project.lisp --evm
+claps project.lisp --evm --status-date 2024-04-01
+
+# Run Monte Carlo simulation
+claps project.lisp --simulate
+claps project.lisp --simulate --trials 5000
+
+# List and compare scenarios
+claps project.lisp --scenarios
+claps project.lisp --compare plan delayed
+
+# JSON output (for scripting/integration)
+claps project.lisp --summary --json
+claps project.lisp --critical-path --json
+
+# Validate only (no scheduling)
+claps project.lisp --validate
+
+# Help
+claps --help
+```
+
+## Quick Start (REPL)
 
 ```lisp
-(ql:quickload :project-juggler)
-(in-package :project-juggler)
+(ql:quickload :claps)
+(in-package :claps)
 
 (defproject website "Website Redesign"
   :start (date 2024 3 1)
@@ -65,7 +116,7 @@ Add to your `~/.sbclrc`:
 
 ## Scenarios (TaskJuggler-style)
 
-Project Juggler uses TaskJuggler-style scenarios for what-if analysis and baseline tracking.
+CLAPS uses TaskJuggler-style scenarios for what-if analysis and baseline tracking.
 
 ### Declaring Scenarios
 
@@ -133,6 +184,12 @@ Supported scenario-specific properties:
 ;; => (:total-duration 45 :total-effort 120 :end-date ... :task-count 10)
 ```
 
+Or via CLI:
+```bash
+claps project.lisp --compare plan delayed
+claps project.lisp --compare plan delayed --json
+```
+
 ### Baseline (First Scenario)
 
 The first declared scenario is automatically the baseline:
@@ -155,6 +212,55 @@ The first declared scenario is automatically the baseline:
 ;; => #<SCENARIO DELAYED>
 ```
 
+Or via CLI:
+```bash
+claps project.lisp --scenarios
+```
+
+### Adding Scenarios Dynamically
+
+You can create new scenarios (baselines) at any point:
+
+```lisp
+;; Create a snapshot of current project state as a new scenario
+(add-scenario *current-project* 'revised "Revised Plan")
+
+;; Modify values in the new scenario
+(set-scenario-value *current-project* 'revised 'backend :duration (duration 25 :days))
+
+;; Copy an existing scenario
+(copy-scenario *current-project* 'plan 'plan-v2 "Plan Version 2")
+
+;; Remove a scenario (cannot remove the baseline/first scenario)
+(remove-scenario *current-project* 'revised)
+```
+
+## Summary Tasks (Phases)
+
+Summary tasks are parent tasks that contain subtasks. Their values are automatically aggregated from children:
+
+```lisp
+(deftask phase1 "Phase 1: Design"
+  (deftask ui-design "UI Design"
+    :duration (duration 2 :weeks)
+    :complete 100)
+  (deftask ux-research "UX Research"
+    :duration (duration 1 :weeks)
+    :complete 50))
+
+;; After scheduling, aggregate summary task values
+(aggregate-all-summary-tasks *current-project*)
+
+;; Summary task now has:
+;; - Duration spanning from first subtask start to last subtask end
+;; - Effort = sum of subtask efforts
+;; - Complete = weighted average of subtask completion
+
+;; Get progress info for a summary task
+(summary-task-progress (gethash 'phase1 (project-tasks *current-project*)))
+;; => (:total-subtasks 2 :leaf-tasks 2 :completed 1 :in-progress 1 :not-started 0 ...)
+```
+
 ## Reporting
 
 ### Report Types
@@ -169,6 +275,7 @@ The first declared scenario is automatically the baseline:
 | `:evm` | Earned Value Management | :html |
 | `:simulation` | Monte Carlo results | :html |
 | `:risk` | Risk register | :html, :csv |
+| `:comparison` | Scenario comparison | :html, :csv |
 
 ### Defining Reports
 
@@ -199,6 +306,12 @@ The first declared scenario is automatically the baseline:
 (generate-all-reports *current-project* "output/")
 ```
 
+Or via CLI:
+```bash
+claps project.lisp --output-dir ./reports
+claps project.lisp --report summary
+```
+
 ## Earned Value Management (EVM)
 
 EVM calculations use the baseline scenario (first scenario) by default:
@@ -214,6 +327,13 @@ EVM calculations use the baseline scenario (first scenario) by default:
 (calculate-earned-value *current-project* :scenario 'delayed)
 ```
 
+Or via CLI:
+```bash
+claps project.lisp --evm
+claps project.lisp --evm --status-date 2024-04-01
+claps project.lisp --evm --json
+```
+
 ## Monte Carlo Simulation
 
 For PERT-based schedule risk analysis:
@@ -225,9 +345,16 @@ For PERT-based schedule risk analysis:
              :pessimistic (duration 20 :days)))
 
 ;; Run simulation
-(let ((results (run-monte-carlo *current-project* :trials 10000)))
-  (format t "P50 completion: ~A~%" (percentile results 50))
-  (format t "P90 completion: ~A~%" (percentile results 90)))
+(let ((results (run-monte-carlo-simulation *current-project* :trials 10000)))
+  (format t "P50 completion: ~A~%" (simulation-percentile results 50))
+  (format t "P90 completion: ~A~%" (simulation-percentile results 90)))
+```
+
+Or via CLI:
+```bash
+claps project.lisp --simulate
+claps project.lisp --simulate --trials 10000
+claps project.lisp --simulate --json
 ```
 
 ## Resource Management
@@ -261,6 +388,12 @@ For PERT-based schedule risk analysis:
 
 ```lisp
 (detect-resource-overallocations *current-project*)
+```
+
+Or via CLI:
+```bash
+claps project.lisp --resources
+claps project.lisp --overallocations
 ```
 
 ## Dependencies
@@ -317,12 +450,13 @@ Constraint types:
 2. **First scenario is the baseline** - Use `plan` or `baseline` as your first scenario
 3. **Version control your project files** - Project files are just `.lisp` files
 4. **Use effort for work, duration for calendar time** - They schedule differently
+5. **Use the CLI for quick analysis** - `claps project.lisp --summary` for instant feedback
 
 ## Example Project
 
 ```lisp
-(ql:quickload :project-juggler)
-(in-package :project-juggler)
+(ql:quickload :claps)
+(in-package :claps)
 
 (defproject mobile-app "Mobile App Development"
   :start (date 2024 3 1)
@@ -370,4 +504,12 @@ Constraint types:
 (let ((comparison (compare-scenarios *current-project* 'plan 'delayed)))
   (format t "Plan duration: ~A days~%" (getf comparison :duration-1))
   (format t "Delayed duration: ~A days~%" (getf comparison :duration-2)))
+```
+
+Or analyze via CLI:
+```bash
+claps mobile-app.lisp --summary
+claps mobile-app.lisp --critical-path
+claps mobile-app.lisp --compare plan delayed
+claps mobile-app.lisp --simulate --trials 5000
 ```

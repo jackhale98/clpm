@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-critical-path.lisp
 ;;;; Tests for CPM Critical Path Method (slack-based)
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite scheduling-suite)
 

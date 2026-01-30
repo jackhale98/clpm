@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-availability.lisp
 ;;;; Tests for resource availability (leaves, daily limits, percent allocation)
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite availability-suite
   :in project-juggler-suite

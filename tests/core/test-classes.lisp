@@ -1,7 +1,7 @@
 ;;;; tests/core/test-classes.lisp
 ;;;; Tests for core CLOS classes
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite classes-suite)
 

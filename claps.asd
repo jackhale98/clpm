@@ -1,10 +1,10 @@
-;;;; project-juggler.asd
-;;;; ASDF system definition for Project Juggler
+;;;; claps.asd
+;;;; ASDF system definition for CLAPS - Common Lisp Automated Project Scheduling
 
-(defsystem "project-juggler"
-  :description "Modern TaskJuggler replacement in Common Lisp"
+(defsystem "claps"
+  :description "Common Lisp Automated Project Scheduling"
   :version "1.0.0"
-  :author "Project Juggler Team"
+  :author "CLAPS Team"
   :license "MIT"
   :depends-on (#:local-time
                #:cl-ppcre
@@ -21,7 +21,8 @@
                   ((:file "types")
                    (:file "classes")
                    (:file "protocols")
-                   (:file "errors")))
+                   (:file "errors")
+                   (:file "summary-tasks")))
                  (:module "namespace"
                   :serial t
                   :components
@@ -37,7 +38,8 @@
                    (:file "defaccount")
                    (:file "dependencies")
                    (:file "allocations")
-                   (:file "defreport")))
+                   (:file "defreport")
+                   (:file "defscenario")))
                  (:module "validation"
                   :serial t
                   :components
@@ -97,11 +99,30 @@
                   :components
                   ((:file "helpers")
                    (:file "macros"))))))
-  :in-order-to ((test-op (test-op "project-juggler/tests"))))
+  :in-order-to ((test-op (test-op "claps/tests"))))
 
-(defsystem "project-juggler/tests"
-  :description "Test suite for Project Juggler"
-  :depends-on (#:project-juggler
+(defsystem "claps/cli"
+  :description "CLI interface for CLAPS"
+  :version "1.0.0"
+  :author "CLAPS Team"
+  :license "MIT"
+  :depends-on (#:claps)
+  :serial t
+  :components ((:module "src"
+                :components
+                ((:module "cli"
+                  :serial t
+                  :components
+                  ((:file "package")
+                   (:file "args")
+                   (:file "output")
+                   (:file "commands")
+                   (:file "main")))))))
+
+(defsystem "claps/tests"
+  :description "Test suite for CLAPS"
+  :depends-on (#:claps
+               #:claps/cli
                #:fiveam)
   :serial t
   :components ((:module "tests"
@@ -114,7 +135,8 @@
                   :components
                   ((:file "test-types")
                    (:file "test-classes")
-                   (:file "test-protocols")))
+                   (:file "test-protocols")
+                   (:file "test-summary-tasks")))
                  (:module "namespace"
                   :serial t
                   :components
@@ -125,7 +147,8 @@
                   :components
                   ((:file "test-defproject")
                    (:file "test-deftask")
-                   (:file "test-dependencies")))
+                   (:file "test-dependencies")
+                   (:file "test-defscenario")))
                  (:module "validation"
                   :serial t
                   :components
@@ -175,7 +198,15 @@
                   :components
                   ((:file "test-simple-project")
                    (:file "test-complex-project")
-                   (:file "test-performance"))))))
+                   (:file "test-performance")))
+                 (:module "cli"
+                  :serial t
+                  :components
+                  ((:file "test-cli-package")
+                   (:file "test-args")
+                   (:file "test-output")
+                   (:file "test-commands")
+                   (:file "test-integration"))))))
   :perform (test-op (o c) (symbol-call :fiveam '#:run!
-                                       (find-symbol* '#:project-juggler-suite
-                                                    '#:project-juggler-tests))))
+                                       (find-symbol* '#:claps-suite
+                                                    '#:claps-tests))))

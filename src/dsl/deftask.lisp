@@ -1,7 +1,7 @@
 ;;;; src/dsl/deftask.lisp
 ;;;; deftask macro implementation
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Dependency Specification Parsing

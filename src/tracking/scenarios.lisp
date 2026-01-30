@@ -7,7 +7,7 @@
 ;;;; - First scenario is the baseline
 ;;;; - No separate "baseline" concept - just scenarios
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Scenario Utilities

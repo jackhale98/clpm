@@ -4,7 +4,7 @@
 ;;;; NOTE: This is TaskJuggler's HEURISTIC criticalness used for scheduling priority.
 ;;;; True critical path (slack-based) is calculated AFTER scheduling in critical-path.lisp
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Resource Criticalness (TaskJuggler Heuristic)

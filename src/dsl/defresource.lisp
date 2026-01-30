@@ -1,7 +1,7 @@
 ;;;; src/dsl/defresource.lisp
 ;;;; defresource macro implementation
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Leave Specification Parsing

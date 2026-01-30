@@ -1,7 +1,7 @@
 ;;;; src/reporting/formats/csv.lisp
 ;;;; CSV report formatting
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; CSV Task Reports

@@ -7,7 +7,7 @@
 ;;;; - Slack: LS - ES (or LF - EF)
 ;;;; - Critical path: Tasks with zero slack
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Forward Pass (Early Start / Early Finish)

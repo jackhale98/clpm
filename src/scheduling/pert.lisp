@@ -1,7 +1,7 @@
 ;;;; src/scheduling/pert.lisp
 ;;;; PERT three-point estimation calculations
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Basic PERT Calculations

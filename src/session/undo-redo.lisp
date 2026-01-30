@@ -1,7 +1,7 @@
 ;;;; src/session/undo-redo.lisp
 ;;;; Undo/Redo functionality
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Undo

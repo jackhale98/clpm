@@ -1,7 +1,7 @@
 ;;;; src/reporting/helpers.lisp
 ;;;; Helper functions for working with project reports
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Report Generation Helpers

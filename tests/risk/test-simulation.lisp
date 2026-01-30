@@ -1,7 +1,7 @@
 ;;;; tests/risk/test-simulation.lisp
 ;;;; Tests for Monte Carlo PERT simulation
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite simulation-suite
   :in project-juggler-suite

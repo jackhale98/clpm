@@ -1,7 +1,7 @@
 ;;;; src/session/session.lisp
 ;;;; Session management main file
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; The session class is defined in core/classes.lisp
 ;;; Session functionality is implemented in:

@@ -1,7 +1,7 @@
 ;;;; src/scheduling/resource-allocation.lisp
 ;;;; Resource allocation and leveling
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Overallocation Class

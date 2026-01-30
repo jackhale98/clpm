@@ -1,7 +1,7 @@
 ;;;; src/constraints/constraints.lisp
 ;;;; Task constraints and recurring task functionality
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Constraint Application in Scheduling

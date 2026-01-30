@@ -1,9 +1,9 @@
 ;;;; src/package.lisp
-;;;; Package definition for Project Juggler
+;;;; Package definition for CLAPS - Common Lisp Automated Project Scheduling
 
-(defpackage #:project-juggler
+(defpackage #:claps
   (:use #:cl #:alexandria)
-  (:nicknames #:pj)
+  (:nicknames #:pj #:project-juggler)  ; Backwards compatibility
   (:export
    ;; Core temporal types
    #:pj-date
@@ -322,8 +322,10 @@
    #:scenario
    #:scenario-id
    #:scenario-name
+   #:scenario-description
    #:scenario-parent
    #:scenario-enabled-p
+   #:scenario-created-at
    #:list-scenarios
    #:get-scenario
    #:baseline-scenario
@@ -341,6 +343,25 @@
    #:task-scenario-values
    #:project-latest-end
    #:days-between-dates
+   #:defscenario
+   #:add-scenario
+   #:remove-scenario
+   #:copy-scenario
+   #:set-scenario-value
+
+   ;; Summary tasks (phases)
+   #:summary-task-p
+   #:leaf-task-p
+   #:aggregate-summary-task
+   #:aggregate-all-summary-tasks
+   #:get-all-subtasks
+   #:get-leaf-tasks
+   #:summary-task-progress
+
+   ;; Comparison reports
+   #:comparison-report
+   #:comparison-scenario-1
+   #:comparison-scenario-2
 
    ;; Resource availability
    #:leave
@@ -467,7 +488,8 @@
    #:simulation-summary
 
    ;; Error conditions
-   #:project-juggler-error
+   #:claps-error
+   #:project-juggler-error  ; Backwards compatibility
    #:reference-error
    #:circular-dependency-error
    #:scheduling-error

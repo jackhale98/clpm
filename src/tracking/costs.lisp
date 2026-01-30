@@ -1,7 +1,7 @@
 ;;;; src/tracking/costs.lisp
 ;;;; Cost tracking and calculation functions
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; ============================================================================
 ;;; Task Cost Calculations

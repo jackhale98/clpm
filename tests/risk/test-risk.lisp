@@ -1,7 +1,7 @@
 ;;;; tests/risk/test-risk.lisp
 ;;;; Tests for risk register and risk management
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite risk-suite
   :in project-juggler-suite

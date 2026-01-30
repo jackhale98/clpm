@@ -1,7 +1,7 @@
 ;;;; tests/scheduling/test-pert.lisp
 ;;;; Tests for PERT three-point estimation
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite pert-suite
   :in project-juggler-suite

@@ -1,7 +1,7 @@
 ;;;; src/core/classes.lisp
 ;;;; Core CLOS classes (to be implemented via TDD)
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;; Stub class definitions - will be implemented via TDD in Phase 1
 
@@ -227,9 +227,11 @@
 (defclass scenario ()
   ((id :initarg :id :reader scenario-id)
    (name :initarg :name :reader scenario-name)
+   (description :initarg :description :initform nil :accessor scenario-description)
    (parent :initarg :parent :initform nil :accessor scenario-parent)
-   (enabled :initarg :enabled :initform t :accessor scenario-enabled-p))
-  (:documentation "Project scenario"))
+   (enabled :initarg :enabled :initform t :accessor scenario-enabled-p)
+   (created-at :initarg :created-at :initform nil :accessor scenario-created-at))
+  (:documentation "Project scenario / baseline"))
 
 (defclass booking ()
   ((resource :initarg :resource :reader booking-resource)

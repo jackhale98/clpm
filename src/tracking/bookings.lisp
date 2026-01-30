@@ -1,7 +1,7 @@
 ;;;; src/tracking/bookings.lisp
 ;;;; Actual time tracking with bookings
 
-(in-package #:project-juggler)
+(in-package #:claps)
 
 ;;;
 ;;; Booking Predicates

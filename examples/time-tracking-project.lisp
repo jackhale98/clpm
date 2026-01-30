@@ -22,14 +22,14 @@
 
 ;; Load Project Juggler
 (handler-case
-    (asdf:load-system :project-juggler :verbose nil)
+    (asdf:load-system :claps :verbose nil)
   (error (e)
     (format t "Error loading project-juggler: ~A~%" e)
     (format t "Please ensure all dependencies are installed.~%")
     (format t "Make sure you're running from either the project root or examples/ directory.~%")
     (uiop:quit 1)))
 
-(in-package :project-juggler)
+(in-package :claps)
 
 (format t "~%╔══════════════════════════════════════════════════════════════════════════════╗~%")
 (format t "║                         TIME TRACKING PROJECT DEMO                           ║~%")

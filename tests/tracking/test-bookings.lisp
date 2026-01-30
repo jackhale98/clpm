@@ -1,7 +1,7 @@
 ;;;; tests/tracking/test-bookings.lisp
 ;;;; Tests for bookings (actual time tracking)
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (def-suite bookings-suite
   :in project-juggler-suite

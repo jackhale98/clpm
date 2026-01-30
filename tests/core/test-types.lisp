@@ -1,7 +1,7 @@
 ;;;; tests/core/test-types.lisp
 ;;;; Tests for temporal types (Phase 0 basic tests, Phase 1 detailed tests)
 
-(in-package #:project-juggler-tests)
+(in-package #:claps-tests)
 
 (in-suite types-suite)
 
