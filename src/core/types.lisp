@@ -31,6 +31,13 @@
               :documentation "Internal timestamp representation using local-time"))
   (:documentation "Project Juggler date"))
 
+(defmethod print-object ((date pj-date) stream)
+  "Print date in YYYY-MM-DD format"
+  (format stream "~4,'0D-~2,'0D-~2,'0D"
+          (local-time:timestamp-year (date-timestamp date))
+          (local-time:timestamp-month (date-timestamp date))
+          (local-time:timestamp-day (date-timestamp date))))
+
 (defun date (year month day &optional (hour 0) (minute 0) (second 0))
   "Create a date"
   (make-instance 'pj-date

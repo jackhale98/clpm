@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SBCL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sbcl
+
+      - name: Install Quicklisp
+        run: |
+          curl -O https://beta.quicklisp.org/quicklisp.lisp
+          sbcl --load quicklisp.lisp \
+               --eval '(quicklisp-quickstart:install)' \
+               --eval '(ql:add-to-init-file)' \
+               --quit
+
+      - name: Install dependencies
+        run: |
+          sbcl --eval '(ql:quickload :local-time)' \
+               --eval '(ql:quickload :cl-ppcre)' \
+               --eval '(ql:quickload :alexandria)' \
+               --eval '(ql:quickload :split-sequence)' \
+               --eval '(ql:quickload :fiveam)' \
+               --quit
+
+      - name: Run tests
+        run: |
+          sbcl --script run-tests.lisp
+
+      - name: Build CLI
+        run: |
+          sbcl --eval '(push (truename ".") asdf:*central-registry*)' \
+               --eval '(ql:quickload :claps/cli :silent t)' \
+               --eval '(claps/cli:build-executable "claps")' \
+               --quit
+
+      - name: Test CLI
+        run: |
+          ./claps --version
+          ./claps --help
+          ./claps examples/simple-project.lisp --summary --quiet

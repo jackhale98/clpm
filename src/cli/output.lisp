@@ -4,6 +4,19 @@
 (in-package #:claps/cli)
 
 ;;; ============================================================================
+;;; Date Formatting
+;;; ============================================================================
+
+(defun format-date (date)
+  "Format a date for CLI output as YYYY-MM-DD"
+  (if date
+      (format nil "~4,'0D-~2,'0D-~2,'0D"
+              (claps:date-year date)
+              (claps:date-month date)
+              (claps:date-day date))
+      "N/A"))
+
+;;; ============================================================================
 ;;; Basic Output Functions
 ;;; ============================================================================
 
@@ -170,8 +183,8 @@
             (format t "=======================~%")
             (format t "Project: ~A~%" (claps:project-name project))
             (format t "Period:  ~A to ~A~%"
-                    (claps:date-timestamp (claps:project-start project))
-                    (claps:date-timestamp (claps:project-end project)))
+                    (format-date (claps:project-start project))
+                    (format-date (claps:project-end project)))
             (format t "~%")
             (format t "Tasks:      ~D total, ~D scheduled, ~D milestones~%"
                     task-count scheduled-count milestone-count)
@@ -218,8 +231,8 @@
           (dolist (task critical-tasks)
             (format t "~20A ~12A ~12A ~8A~%"
                     (claps:task-name task)
-                    (claps:date-timestamp (claps:task-start task))
-                    (claps:date-timestamp (claps:task-end task))
+                    (format-date (claps:task-start task))
+                    (format-date (claps:task-end task))
                     (format nil "~D days" (or (claps:task-slack task) 0))))
           (when milestones
             (format t "~%Path: ")
@@ -280,9 +293,7 @@
                             ((> (or (claps:task-complete task) 0) 0) "~")
                             (t "o"))))
               (format t "~12A ~12A ~30A~%"
-                      (if (claps:task-end task)
-                          (claps:date-timestamp (claps:task-end task))
-                          "TBD")
+                      (format-date (claps:task-end task))
                       (format nil "~A ~A" symbol status)
                       (claps:task-name task))))
           (format t "~%Legend: OK=Complete, ~~=In Progress, o=Pending~%")))))
@@ -370,7 +381,7 @@
                         "----" "--------" "----" "-----------------")
                 (dolist (oa overallocations)
                   (format t "~12A ~15A ~6D% ~{~A~^, ~}~%"
-                          (claps:date-timestamp (claps:overallocation-date oa))
+                          (format-date (claps:overallocation-date oa))
                           (claps:overallocation-resource-id oa)
                           (round (* 100 (claps:overallocation-load oa)))
                           (claps:overallocation-tasks oa)))))))))
@@ -402,7 +413,7 @@
         (progn
           (format t "Earned Value Management~%")
           (format t "=======================~%")
-          (format t "Status Date: ~A~%~%" (claps:date-timestamp status-date))
+          (format t "Status Date: ~A~%~%" (format-date status-date))
           (format t "~25A ~10A ~10A~%" "Metric" "Value" "Status")
           (format t "~25A ~10A ~10A~%" "------" "-----" "------")
           (format t "~25A ~9,1F%~%" "Planned Value (PV)" pv)

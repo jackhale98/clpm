@@ -58,6 +58,9 @@
    (late-start :initform nil :accessor task-late-start)
    (late-finish :initform nil :accessor task-late-finish)
    (slack :initform nil :accessor task-slack)
+   ;; Actual dates (for tracking vs planned)
+   (actual-start :initarg :actual-start :initform nil :accessor task-actual-start)
+   (actual-end :initarg :actual-end :initform nil :accessor task-actual-end)
    ;; Bookings (actual time tracking)
    (bookings :initform nil :accessor task-bookings)
    ;; Cost tracking

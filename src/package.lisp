@@ -66,6 +66,8 @@
    #:task-duration
    #:task-start
    #:task-end
+   #:task-actual-start
+   #:task-actual-end
    #:task-priority
    #:task-milestone-p
    #:task-complete
@@ -348,6 +350,13 @@
    #:remove-scenario
    #:copy-scenario
    #:set-scenario-value
+
+   ;; Booking DSL (declarative time tracking)
+   #:defbooking
+   #:defbookings
+   #:deftimesheet
+   #:sync-completion-from-bookings
+   #:sync-actual-dates-from-bookings
 
    ;; Summary tasks (phases)
    #:summary-task-p

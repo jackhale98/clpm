@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project Timeline</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    .gantt-container { overflow-x: auto; }
+  </style>
+</head>
+<body>
+<h1>Project Timeline</h1>
+<div class="gantt-container">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="305" viewBox="0 0 1000 305">
+<style>
+  .task-bar { fill: #4CAF50; }
+  .critical-bar { fill: #f44336; }
+  .milestone { fill: #9C27B0; }
+  .task-label { font-family: Arial, sans-serif; font-size: 12px; }
+  .header { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+  .dependency-line { stroke: #666; stroke-width: 1; fill: none; }
+  .grid-line { stroke: #eee; stroke-width: 1; }
+</style>
+<rect width="1000" height="305" fill="white"/>
+<text x="10" y="25" class="header">Task</text>
+<text x="210" y="25" class="header">Timeline</text>
+<line x1="0" y1="40" x2="1000" y2="40" stroke="#ccc"/>
+<text x="10" y="67" class="task-label">Requirements Analysis</text>
+<rect x="200" y="50" width="2080/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="102" class="task-label">System Architecture</text>
+<rect x="16280/71" y="85" width="1560/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="137" class="task-label">Backend Development</text>
+<rect x="17840/71" y="120" width="4420/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="172" class="task-label">Frontend Development</text>
+<rect x="17840/71" y="155" width="3380/71" height="25" class="task-bar" rx="3"/>
+<text x="10" y="207" class="task-label">System Integration</text>
+<rect x="22260/71" y="190" width="1560/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="242" class="task-label">QA Testing</text>
+<rect x="23820/71" y="225" width="2860/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="277" class="task-label">Production Deployment</text>
+<rect x="26680/71" y="260" width="780/71" height="25" class="critical-bar" rx="3"/>
+<path d="M16280/71,125/2 L16990/71,125/2 L16280/71,195/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M17840/71,195/2 L18550/71,195/2 L17840/71,265/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M17840/71,195/2 L18550/71,195/2 L17840/71,335/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M21220/71,335/2 L21930/71,335/2 L22260/71,405/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M22260/71,265/2 L22970/71,265/2 L22260/71,405/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M23820/71,405/2 L24530/71,405/2 L23820/71,475/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M26680/71,475/2 L27390/71,475/2 L26680/71,545/2" class="dependency-line" marker-end="url(#arrow)"/>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+  </marker>
+</defs>
+</svg>
+</div>
+</body>
+</html>

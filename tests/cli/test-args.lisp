@@ -97,7 +97,7 @@
 (test parse-report
   "Parsing --report with value"
   (let ((opts (claps/cli:parse-arguments '("project.lisp" "--report" "summary"))))
-    (is (eq 'summary (claps/cli:option-report opts)))))
+    (is (eq 'claps::summary (claps/cli:option-report opts)))))
 
 (test parse-status-date
   "Parsing --status-date with value"
@@ -116,7 +116,7 @@
 (test parse-compare-two-args
   "Parsing --compare with two scenario names"
   (let ((opts (claps/cli:parse-arguments '("project.lisp" "--compare" "plan" "delayed"))))
-    (is (equal '(plan delayed) (claps/cli:option-compare opts)))))
+    (is (equal '(claps::plan claps::delayed) (claps/cli:option-compare opts)))))
 
 ;;; ============================================================================
 ;;; Output Options Tests

@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: claps-linux-x86_64
+          - os: macos-latest
+            artifact: claps-macos-x86_64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SBCL (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sbcl
+
+      - name: Install SBCL (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sbcl
+
+      - name: Install Quicklisp
+        run: |
+          curl -O https://beta.quicklisp.org/quicklisp.lisp
+          sbcl --load quicklisp.lisp \
+               --eval '(quicklisp-quickstart:install)' \
+               --eval '(ql:add-to-init-file)' \
+               --quit
+
+      - name: Install dependencies
+        run: |
+          sbcl --eval '(ql:quickload :local-time)' \
+               --eval '(ql:quickload :cl-ppcre)' \
+               --eval '(ql:quickload :alexandria)' \
+               --eval '(ql:quickload :split-sequence)' \
+               --quit
+
+      - name: Build executable
+        run: |
+          sbcl --eval '(push (truename ".") asdf:*central-registry*)' \
+               --eval '(ql:quickload :claps/cli :silent t)' \
+               --eval '(claps/cli:build-executable "claps")' \
+               --quit
+
+      - name: Verify build
+        run: |
+          ./claps --version
+          ./claps --help
+
+      - name: Run tests
+        run: |
+          sbcl --script run-tests.lisp
+
+      - name: Rename artifact
+        run: mv claps ${{ matrix.artifact }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: claps-linux-x86_64
+          path: artifacts/
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: claps-macos-x86_64
+          path: artifacts/
+
+      - name: Make executables
+        run: chmod +x artifacts/*
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: CLAPS ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## CLAPS - Common Lisp Automated Project Scheduling
+
+            ### Installation
+
+            Download the appropriate binary for your platform:
+            - **Linux (x86_64)**: `claps-linux-x86_64`
+            - **macOS (x86_64)**: `claps-macos-x86_64`
+
+            Make it executable and run:
+            ```bash
+            chmod +x claps-*
+            ./claps-linux-x86_64 --help
+            ```
+
+            ### Quick Start
+            ```bash
+            # Process a project file
+            claps project.lisp
+
+            # Show project summary
+            claps project.lisp --summary
+
+            # Show critical path
+            claps project.lisp --critical-path
+
+            # Run Monte Carlo simulation
+            claps project.lisp --simulate
+            ```
+
+            See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for full documentation.
+          files: |
+            artifacts/claps-linux-x86_64
+            artifacts/claps-macos-x86_64
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

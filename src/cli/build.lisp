@@ -36,7 +36,7 @@
                             :toplevel #'claps/cli:run-cli
                             :executable t
                             :compression t
-                            :purify t)
+                            :save-runtime-options t)
   #-sbcl
   (error "Building executables is only supported on SBCL"))
 

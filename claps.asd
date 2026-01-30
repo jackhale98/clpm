@@ -39,7 +39,8 @@
                    (:file "dependencies")
                    (:file "allocations")
                    (:file "defreport")
-                   (:file "defscenario")))
+                   (:file "defscenario")
+                   (:file "defbooking")))
                  (:module "validation"
                   :serial t
                   :components

@@ -71,7 +71,8 @@
                      ;; Save to file
                      (let* ((extension (ecase (report-format report)
                                         (:html ".html")
-                                        (:csv ".csv")))
+                                        (:csv ".csv")
+                                        (:svg ".svg")))
                             (filename (format nil "~A~A~A"
                                             output-directory
                                             (string-downcase (symbol-name id))

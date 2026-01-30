@@ -119,7 +119,7 @@
                ((string= arg "--report")
                 (incf i)
                 (if (< i (length args))
-                    (setf (option-report opts) (intern (string-upcase (nth i args))))
+                    (setf (option-report opts) (intern (string-upcase (nth i args)) :claps))
                     (error 'cli-argument-error
                            :message "--report requires a report ID")))
 
@@ -148,8 +148,8 @@
                ((string= arg "--compare")
                 (incf i)
                 (if (< (+ i 1) (length args))
-                    (let ((s1 (intern (string-upcase (nth i args))))
-                          (s2 (intern (string-upcase (nth (1+ i) args)))))
+                    (let ((s1 (intern (string-upcase (nth i args)) :claps))
+                          (s2 (intern (string-upcase (nth (1+ i) args)) :claps)))
                       (setf (option-compare opts) (list s1 s2))
                       (incf i))
                     (error 'cli-argument-error

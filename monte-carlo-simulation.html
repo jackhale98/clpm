@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Schedule Uncertainty Analysis</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #4CAF50; color: white; }
+    .stats { background-color: #f5f5f5; padding: 15px; margin: 10px 0; }
+    .histogram { font-family: monospace; }
+  </style>
+</head>
+<body>
+<h1>Schedule Uncertainty Analysis</h1>
+<div class="stats">
+<h2>Simulation Statistics</h2>
+<p>Trials: 5000</p>
+<p>Mean Duration: 52.4 days</p>
+<p>Std Deviation: 5.35 days</p>
+<p>Minimum: 38.0 days</p>
+<p>Maximum: 71.0 days</p>
+</div>
+<h2>Percentile Analysis</h2>
+<table>
+<tr><th>Percentile</th><th>Duration (days)</th></tr>
+<tr><td>P10</td><td>46.0</td></tr>
+<tr><td>P25</td><td>49.0</td></tr>
+<tr><td>P50</td><td>52.0</td></tr>
+<tr><td>P75</td><td>56.0</td></tr>
+<tr><td>P90</td><td>59.0</td></tr>
+<tr><td>P95</td><td>62.0</td></tr>
+</table>
+<h2>Distribution</h2>
+<pre class="histogram">
+  38.0 -   41.3: # (1.2%)
+  41.3 -   44.6: ##### (5.2%)
+  44.6 -   47.9: ############ (12.4%)
+  47.9 -   51.2: ########################## (26.2%)
+  51.2 -   54.5: ##################### (21.0%)
+  54.5 -   57.8: ################# (16.9%)
+  57.8 -   61.1: ############ (12.1%)
+  61.1 -   64.4: #### (3.5%)
+  64.4 -   67.7: # (1.2%)
+  67.7 -   71.0:  (0.4%)
+</pre>
+</body>
+</html>

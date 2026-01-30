@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plan vs Delayed Comparison</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%%; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #4CAF50; color: white; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+    .summary { background-color: #e3f2fd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    .positive { color: green; } .negative { color: red; }
+    .variance { font-weight: bold; }
+  </style>
+</head>
+<body>
+<h1>Plan vs Delayed Comparison</h1>
+<p>Comparing <strong>PLAN</strong> vs <strong>DELAYED</strong></p>
+<div class="summary">
+<h2>Project Summary</h2>
+<table>
+<tr><th>Metric</th><th>PLAN</th><th>DELAYED</th><th>Variance</th></tr>
+<tr><td>Total Duration</td><td>73.0 days</td><td>108.0 days</td>
+  <td class="variance negative">+35.0 days</td></tr>
+<tr><td>Total Effort</td><td>0.0 days</td><td>0.0 days</td>
+  <td class="variance positive">0.0 days</td></tr>
+<tr><td>Project End</td><td>2024-04-22</td><td>2024-04-22</td>
+  <td class="variance positive">0 days</td></tr>
+</table>
+</div>
+<h2>Task-Level Comparison</h2>
+<table>
+<tr><th>Task</th><th>PLAN Duration</th><th>DELAYED Duration</th><th>Variance</th></tr>
+<tr><td>Requirements Gathering</td><td>7.0 days</td><td>14.0 days</td>
+  <td class="variance negative">+7.0 days</td></tr>
+<tr><td>UI/UX Design</td><td>14.0 days</td><td>21.0 days</td>
+  <td class="variance negative">+7.0 days</td></tr>
+<tr><td>Frontend Development</td><td>21.0 days</td><td>28.0 days</td>
+  <td class="variance negative">+7.0 days</td></tr>
+<tr><td>Backend Development</td><td>21.0 days</td><td>28.0 days</td>
+  <td class="variance negative">+7.0 days</td></tr>
+<tr><td>Integration &amp; Testing</td><td>7.0 days</td><td>14.0 days</td>
+  <td class="variance negative">+7.0 days</td></tr>
+<tr><td>Deployment &amp; Launch</td><td>3.0 days</td><td>3.0 days</td>
+  <td class="variance ">0.0 days</td></tr>
+</table>
+</body>
+</html>

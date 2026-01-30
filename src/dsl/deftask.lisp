@@ -261,6 +261,8 @@
      :duration    - Calendar duration
      :start       - Fixed start date
      :end         - Fixed end date
+     :actual-start - Actual start date (for tracking)
+     :actual-end   - Actual end date (for tracking)
      :priority    - Priority (default 500)
      :milestone   - Boolean, is this a milestone?
      :complete    - Completion percentage (0-100)
@@ -271,6 +273,7 @@
      :start-constraint - Start date constraint (:snet, :snlt, :mso)
      :finish-constraint - Finish date constraint (:fnet, :fnlt, :mfo)
      :recurring   - Recurring task definition
+     :bookings    - Inline booking list: ((resource date hours) ...)
 
    Body can contain subtask definitions."
 
@@ -280,6 +283,8 @@
         (duration-expr nil)
         (start-expr nil)
         (end-expr nil)
+        (actual-start-expr nil)
+        (actual-end-expr nil)
         (priority-expr nil)
         (milestone-expr nil)
         (complete-expr nil)
@@ -290,6 +295,7 @@
         (start-constraint-expr nil)
         (finish-constraint-expr nil)
         (recurring-expr nil)
+        (bookings-expr nil)
         ;; TaskJuggler-style: scenario-specific values
         ;; List of (scenario-id property value-expr)
         (scenario-values nil)
@@ -313,6 +319,8 @@
                      (:duration (setf duration-expr value))
                      (:start (setf start-expr value))
                      (:end (setf end-expr value))
+                     (:actual-start (setf actual-start-expr value))
+                     (:actual-end (setf actual-end-expr value))
                      (:priority (setf priority-expr value))
                      (:milestone (setf milestone-expr value))
                      (:complete (setf complete-expr value))
@@ -323,6 +331,7 @@
                      (:start-constraint (setf start-constraint-expr value))
                      (:finish-constraint (setf finish-constraint-expr value))
                      (:recurring (setf recurring-expr value))
+                     (:bookings (setf bookings-expr value))
                      (t (warn "Unknown keyword in deftask: ~A" keyword))))
                (setf remaining (cddr remaining))))
 
@@ -339,6 +348,8 @@
                                 ,@(when duration-expr `(:duration ,duration-expr))
                                 ,@(when start-expr `(:start ,start-expr))
                                 ,@(when end-expr `(:end ,end-expr))
+                                ,@(when actual-start-expr `(:actual-start ,actual-start-expr))
+                                ,@(when actual-end-expr `(:actual-end ,actual-end-expr))
                                 ,@(when priority-expr `(:priority ,priority-expr))
                                 ,@(when milestone-expr `(:milestone ,milestone-expr))
                                 ,@(when complete-expr `(:complete ,complete-expr))
@@ -392,6 +403,19 @@
                           (setf (gethash ',scenario-id (task-scenario-values task))
                                 (list* ,property ,value-expr current-plist)))))
                    scenario-values))
+
+       ;; Process inline bookings: ((resource-ref date hours) ...)
+       ,@(when bookings-expr
+           `((dolist (booking-spec ',bookings-expr)
+               (let* ((resource-ref (first booking-spec))
+                      (date-expr (second booking-spec))
+                      (hours (third booking-spec))
+                      (resource (gethash resource-ref (project-resources *current-project*))))
+                 (when resource
+                   (add-booking task resource (eval date-expr)
+                               (if (numberp hours)
+                                   (duration hours :hours)
+                                   (eval hours))))))))
 
        ;; Execute body with this task as current
        (let ((*current-task* task))

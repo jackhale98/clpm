@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Project Timeline</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    .gantt-container { overflow-x: auto; }
+  </style>
+</head>
+<body>
+<h1>Project Timeline</h1>
+<div class="gantt-container">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1285" viewBox="0 0 1200 1285">
+<style>
+  .task-bar { fill: #4CAF50; }
+  .critical-bar { fill: #f44336; }
+  .milestone { fill: #9C27B0; }
+  .task-label { font-family: Arial, sans-serif; font-size: 12px; }
+  .header { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+  .dependency-line { stroke: #666; stroke-width: 1; fill: none; }
+  .grid-line { stroke: #eee; stroke-width: 1; }
+</style>
+<rect width="1200" height="1285" fill="white"/>
+<text x="10" y="25" class="header">Task</text>
+<text x="210" y="25" class="header">Timeline</text>
+<line x1="0" y1="40" x2="1200" y2="40" stroke="#ccc"/>
+<text x="10" y="67" class="task-label">Requirements Gathering</text>
+<rect x="200" y="50" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="102" class="task-label">System Architecture De...</text>
+<rect x="56320/213" y="85" width="13720/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="137" class="task-label">UX Design & Wireframes</text>
+<rect x="56320/213" y="120" width="6860/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="172" class="task-label">UI Design & Mockups</text>
+<rect x="76900/213" y="155" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="207" class="task-label">Design Approval</text>
+<polygon points="91685/213,194 93389/213,202 91685/213,210 89981/213,202" class="milestone"/>
+<text x="10" y="242" class="task-label">Database Schema Design</text>
+<rect x="90620/213" y="225" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="277" class="task-label">Frontend Framework Setup</text>
+<rect x="90620/213" y="260" width="6860/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="312" class="task-label">API Framework Setup</text>
+<rect x="97480/213" y="295" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="347" class="task-label">Component Library Deve...</text>
+<rect x="97480/213" y="330" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="382" class="task-label">User Authentication & ...</text>
+<rect x="34780/71" y="365" width="13720/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="417" class="task-label">User Management API</text>
+<rect x="34780/71" y="400" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="452" class="task-label">Data Processing API</text>
+<rect x="34780/71" y="435" width="13720/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="487" class="task-label">Reporting API</text>
+<rect x="34780/71" y="470" width="13720/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="522" class="task-label">Dashboard Implementation</text>
+<rect x="111200/213" y="505" width="6860/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="557" class="task-label">Login & Registration UI</text>
+<rect x="111200/213" y="540" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="592" class="task-label">User Profile UI</text>
+<rect x="111200/213" y="575" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="627" class="task-label">Data Visualization Views</text>
+<rect x="111200/213" y="610" width="13720/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="662" class="task-label">Backend Unit Tests</text>
+<rect x="118060/213" y="645" width="13720/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="697" class="task-label">Frontend Unit Tests</text>
+<rect x="131780/213" y="680" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="732" class="task-label">Backend-Frontend Integ...</text>
+<rect x="48500/71" y="715" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="767" class="task-label">Functional Testing</text>
+<rect x="159220/213" y="750" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="802" class="task-label">Performance Testing</text>
+<rect x="159220/213" y="785" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="837" class="task-label">Security Testing</text>
+<rect x="159220/213" y="820" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="872" class="task-label">Bug Fixing & Refinement</text>
+<rect x="172940/213" y="855" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="907" class="task-label">Regression Testing</text>
+<rect x="62220/71" y="890" width="6860/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="942" class="task-label">Infrastructure Setup</text>
+<rect x="193520/213" y="925" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="977" class="task-label">CI/CD Pipeline</text>
+<rect x="69080/71" y="960" width="6860/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="1012" class="task-label">Staging Deployment</text>
+<rect x="214100/213" y="995" width="6860/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="1047" class="task-label">Staging Validation</text>
+<rect x="220960/213" y="1030" width="6860/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="1082" class="task-label">Production Deployment</text>
+<rect x="75940/71" y="1065" width="980/71" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="1117" class="task-label">Product Launch</text>
+<polygon points="77275/71,1104 77843/71,1112 77275/71,1120 76707/71,1112" class="milestone"/>
+<text x="10" y="1152" class="task-label">Monitoring & Alerts Setup</text>
+<rect x="76920/71" y="1135" width="6860/213" height="25" class="task-bar" rx="3"/>
+<text x="10" y="1187" class="task-label">User Documentation</text>
+<rect x="76920/71" y="1170" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="1222" class="task-label">Initial Support Period</text>
+<rect x="76920/71" y="1205" width="13720/213" height="25" class="critical-bar" rx="3"/>
+<text x="10" y="1257" class="task-label">Project Complete</text>
+<polygon points="245545/213,1244 247249/213,1252 245545/213,1260 243841/213,1252" class="milestone"/>
+<path d="M56320/213,125/2 L58450/213,125/2 L56320/213,195/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M56320/213,125/2 L58450/213,125/2 L56320/213,265/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M76900/213,265/2 L79030/213,265/2 L76900/213,335/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M90620/213,335/2 L92750/213,335/2 L90620/213,405/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M70040/213,195/2 L72170/213,195/2 L90620/213,405/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M90620/213,405/2 L92750/213,405/2 L90620/213,475/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M90620/213,405/2 L92750/213,405/2 L90620/213,545/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M97480/213,475/2 L99610/213,475/2 L97480/213,615/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M97480/213,545/2 L99610/213,545/2 L97480/213,685/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M34780/71,615/2 L35490/71,615/2 L34780/71,755/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M34780/71,615/2 L35490/71,615/2 L34780/71,825/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M34780/71,615/2 L35490/71,615/2 L34780/71,895/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M34780/71,615/2 L35490/71,615/2 L34780/71,965/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M111200/213,685/2 L113330/213,685/2 L111200/213,1035/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M111200/213,685/2 L113330/213,685/2 L111200/213,1105/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M111200/213,685/2 L113330/213,685/2 L111200/213,1175/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M111200/213,685/2 L113330/213,685/2 L111200/213,1245/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M118060/213,965/2 L120190/213,965/2 L118060/213,1315/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M118060/213,895/2 L120190/213,895/2 L118060/213,1315/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M111200/213,825/2 L113330/213,825/2 L118060/213,1315/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M118060/213,755/2 L120190/213,755/2 L118060/213,1315/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M41640/71,1245/2 L42350/71,1245/2 L131780/213,1385/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M118060/213,1175/2 L120190/213,1175/2 L131780/213,1385/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M118060/213,1105/2 L120190/213,1105/2 L131780/213,1385/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M131780/213,1035/2 L133910/213,1035/2 L131780/213,1385/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M118060/213,755/2 L120190/213,755/2 L48500/71,1455/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M48500/71,1385/2 L49210/71,1385/2 L48500/71,1455/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M131780/213,1315/2 L133910/213,1315/2 L48500/71,1455/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M159220/213,1455/2 L161350/213,1455/2 L159220/213,1525/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M159220/213,1455/2 L161350/213,1455/2 L159220/213,1595/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M159220/213,1455/2 L161350/213,1455/2 L159220/213,1665/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M55360/71,1665/2 L56070/71,1665/2 L172940/213,1735/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M55360/71,1595/2 L56070/71,1595/2 L172940/213,1735/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M172940/213,1525/2 L175070/213,1525/2 L172940/213,1735/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M62220/71,1735/2 L62930/71,1735/2 L62220/71,1805/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M193520/213,1805/2 L195650/213,1805/2 L193520/213,1875/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M69080/71,1875/2 L69790/71,1875/2 L69080/71,1945/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M214100/213,1945/2 L216230/213,1945/2 L214100/213,2015/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M220960/213,2015/2 L223090/213,2015/2 L220960/213,2085/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M75940/71,2085/2 L76650/71,2085/2 L75940/71,2155/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M76920/71,2155/2 L77630/71,2155/2 L76920/71,2225/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M76920/71,2225/2 L77630/71,2225/2 L76920/71,2295/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M76920/71,2225/2 L77630/71,2225/2 L76920/71,2365/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M76920/71,2225/2 L77630/71,2225/2 L76920/71,2435/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M244480/213,2435/2 L246610/213,2435/2 L244480/213,2505/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M244480/213,2365/2 L246610/213,2365/2 L244480/213,2505/2" class="dependency-line" marker-end="url(#arrow)"/>
+<path d="M237620/213,2295/2 L239750/213,2295/2 L244480/213,2505/2" class="dependency-line" marker-end="url(#arrow)"/>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+  </marker>
+</defs>
+</svg>
+</div>
+</body>
+</html>
