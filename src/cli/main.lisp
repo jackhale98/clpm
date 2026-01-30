@@ -59,6 +59,7 @@
   (sb-ext:save-lisp-and-die output-path
                             :toplevel #'run-cli
                             :executable t
-                            :compression t)
+                            :compression t
+                            :save-runtime-options t)
   #-sbcl
   (error "Building executables is only supported on SBCL"))

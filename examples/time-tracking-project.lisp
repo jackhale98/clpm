@@ -1,33 +1,28 @@
 ;;;; examples/time-tracking-project.lisp
 ;;;; Demonstrates working time calendars and actual time tracking with bookings
 
-(require :asdf)
-(in-package #:cl-user)
+;;; Load the claps system (skip if already loaded, e.g., via CLI)
+(unless (find-package :claps)
+  (require :asdf)
+  (in-package #:cl-user)
 
-;; Add project root to ASDF registry
-;; Works whether running from examples/ or project root
-(let ((parent-dir (truename "../"))
-      (current-dir (truename ".")))
-  ;; Check if .asd file is in parent directory (running from examples/)
-  (if (probe-file (merge-pathnames "project-juggler.asd" parent-dir))
-      (push parent-dir asdf:*central-registry*)
-      ;; Otherwise assume we're in project root
-      (push current-dir asdf:*central-registry*)))
+  ;; Add project root to ASDF registry
+  (let ((project-root (make-pathname :directory (butlast (pathname-directory *load-truename*)))))
+    (push project-root asdf:*central-registry*))
 
-;; Load Quicklisp if available
-(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
-                                       (user-homedir-pathname))))
-  (when (probe-file quicklisp-init)
-    (load quicklisp-init)))
+  ;; Load Quicklisp if available
+  (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                         (user-homedir-pathname))))
+    (when (probe-file quicklisp-init)
+      (load quicklisp-init)))
 
-;; Load Project Juggler
-(handler-case
-    (asdf:load-system :claps :verbose nil)
-  (error (e)
-    (format t "Error loading project-juggler: ~A~%" e)
-    (format t "Please ensure all dependencies are installed.~%")
-    (format t "Make sure you're running from either the project root or examples/ directory.~%")
-    (uiop:quit 1)))
+  ;; Load claps
+  (handler-case
+      (asdf:load-system :claps :verbose nil)
+    (error (e)
+      (format t "Error loading claps: ~A~%" e)
+      (format t "Please ensure all dependencies are installed.~%")
+      (uiop:quit 1))))
 
 (in-package :claps)
 

@@ -3,7 +3,8 @@
 **A modern, text-first project management system written in Common Lisp**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests: 1225/1225](https://img.shields.io/badge/tests-1225%2F1225%20passing-brightgreen)](tests/)
+[![Tests: 1226/1226](https://img.shields.io/badge/tests-1226%2F1226%20passing-brightgreen)](tests/)
+[![CI](https://github.com/yourusername/claps/workflows/CI/badge.svg)](https://github.com/yourusername/claps/actions)
 [![Common Lisp](https://img.shields.io/badge/language-Common%20Lisp-blue)](https://common-lisp.net/)
 
 CLAPS is a TaskJuggler-inspired project management tool that brings powerful scheduling and tracking capabilities to Common Lisp. Define your projects in a clean, expressive DSL, schedule them with industry-standard algorithms, and track progress with Earned Value Management.
@@ -17,7 +18,8 @@ CLAPS is a TaskJuggler-inspired project management tool that brings powerful sch
   - Critical Path Method (CPM) for mathematical slack-based analysis (automatic)
   - **Effort-based scheduling** with resource efficiency calculations
 - **Working Time Calendars** - Define working hours, holidays, and calculate calendar-aware durations
-- **Actual Time Tracking** - Record actual work with bookings and auto-calculate task completion
+- **Declarative Time Tracking** - Record actual work with `defbooking`/`deftimesheet` macros
+- **Actual vs Planned Tracking** - `:actual-start`, `:actual-end`, `:complete` properties on tasks
 - **Earned Value Management (EVM)** - Track project performance with PV, EV, SV, and SPI metrics
 - **Resource Management** - Allocate resources, detect over-allocation, calculate utilization
 - **Interactive REPL** - Modify projects on-the-fly with full undo/redo support
@@ -46,7 +48,8 @@ CLAPS is a TaskJuggler-inspired project management tool that brings powerful sch
 - **Type Safety** - Rich temporal types (dates, durations, intervals)
 - **Monte Carlo Simulation** - Quantitative schedule risk analysis with PERT
 - **Dynamic Scenario Management** - Create, copy, and modify scenarios at runtime
-- **100% Test Coverage** - 1225 tests ensure reliability
+- **100% Test Coverage** - 1226 tests ensure reliability
+- **CI/CD** - GitHub Actions for testing and releases
 
 ## Installation
 
@@ -359,7 +362,7 @@ claps/
 │   ├── reporting/      # HTML, CSV, Gantt
 │   ├── risk/           # Risk register, Monte Carlo simulation
 │   └── cli/            # Command-line interface
-├── tests/              # 1225 comprehensive tests
+├── tests/              # 1226 comprehensive tests
 ├── examples/           # Example projects
 └── scripts/            # Build scripts
 ```
@@ -389,6 +392,40 @@ For using CLAPS in your own projects, see **[USAGE.md](USAGE.md)** which shows:
 - Version controlling your projects
 - Team collaboration patterns
 - Integration with your applications
+
+## Declarative Time Tracking
+
+CLAPS supports TaskJuggler-style declarative time tracking. Project files are pure data that can be edited by hand.
+
+### In Task Definitions
+
+```lisp
+(deftask backend "Backend Development"
+  :effort (duration 80 :hours)
+  :complete 50                            ; Progress percentage
+  :actual-start (date 2024 11 11)         ; When work actually began
+  :actual-end (date 2024 11 20)           ; When work finished
+  :bookings ((alice (date 2024 11 11) 8)  ; Inline time entries
+             (bob (date 2024 11 12) 6)))
+```
+
+### Separate Timesheet Files
+
+Keep project schedules clean by putting time entries in separate files:
+
+```lisp
+;; timesheets/november-2024.lisp
+
+;; Batch style
+(defbookings
+  (backend alice (date 2024 11 18) 8)
+  (backend bob (date 2024 11 18) 6))
+
+;; Timesheet style (grouped by resource)
+(deftimesheet alice
+  (backend (date 2024 11 18) 8)
+  (backend (date 2024 11 19) 8))
+```
 
 ## Contributing
 

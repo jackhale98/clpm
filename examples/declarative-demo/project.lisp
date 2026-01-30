@@ -5,7 +5,20 @@
 ;;;;
 ;;;; This demonstrates the TaskJuggler-style "file as object" approach.
 
-(ql:quickload :claps :silent t)
+;;; Load the claps system (skip if already loaded, e.g., via CLI)
+(unless (find-package :claps)
+  (let ((project-root (make-pathname :directory (butlast (butlast (pathname-directory *load-truename*))))))
+    (push project-root asdf:*central-registry*))
+
+  ;; Load quicklisp if available
+  (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                         (user-homedir-pathname))))
+    (when (probe-file quicklisp-init)
+      (load quicklisp-init)))
+
+  ;; Load claps
+  (ql:quickload :claps :silent t))
+
 (in-package :claps)
 
 (defproject demo "Declarative Demo Project"

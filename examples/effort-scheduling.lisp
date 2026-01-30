@@ -6,18 +6,20 @@
 ;;;; - Resource efficiency affecting task duration
 ;;;; - How multiple resources reduce task duration
 
-;;; Load the project-juggler system
-(require :asdf)
-(push (truename "../") asdf:*central-registry*)
+;;; Load the claps system (skip if already loaded, e.g., via CLI)
+(unless (find-package :claps)
+  (require :asdf)
+  (let ((project-root (make-pathname :directory (butlast (pathname-directory *load-truename*)))))
+    (push project-root asdf:*central-registry*))
 
-;; Load quicklisp if available
-(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
-                                       (user-homedir-pathname))))
-  (when (probe-file quicklisp-init)
-    (load quicklisp-init)))
+  ;; Load quicklisp if available
+  (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                         (user-homedir-pathname))))
+    (when (probe-file quicklisp-init)
+      (load quicklisp-init)))
 
-;; Load dependencies and project-juggler
-(ql:quickload :claps :silent t)
+  ;; Load dependencies and claps
+  (ql:quickload :claps :silent t))
 
 (in-package :claps)
 
